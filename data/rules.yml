@@ -1,0 +1,84 @@
+version: "3.1"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say 'I am a bot' anytime the user challenges
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+# - rule: Welcome new user
+#   conversation_start: true  # 只在会话开始时触发
+#   steps:
+#   - intent: greet
+#   - action: utter_first_greeting
+
+- rule: 发送欢迎词
+  conversation_start: true  # 仅在对话开始时触发
+  steps:
+    - action: action_check_first_interaction
+    # - action: utter_greet  # 发送欢迎词
+
+- rule: 初级回退
+  steps:
+    - intent: nlu_fallback
+    - action: utter_fallback
+    - action: action_listen 
+
+- rule: 查询主项
+  steps:
+    - intent: inform_main_item
+    - action: action_main_item
+
+- rule: 查询办理地点
+  steps:
+    - intent: ask_processing_location
+    - action: action_detail
+
+- rule: 查询办理时间
+  steps:
+    - intent: ask_processing_time
+    - action: action_detail
+
+- rule: 查询办理时长
+  steps:
+    - intent: ask_deadline
+    - action: action_detail
+  
+- rule: 查询办理费用
+  steps:
+    - intent: ask_payment_requirement
+    - action: action_detail
+
+- rule: 查询联系方式
+  steps:
+    - intent: ask_contact_method
+    - action: action_detail
+
+- rule: 查询全部信息
+  steps:
+    - intent: request_full_info
+    - action: action_detail
+
+# - rule: Act on any message
+#   condition:
+#     - slot_was_set:
+#       - follow_up: true
+#   steps:
+#     - intent: "*"  # 匹配任何意图
+#     - action: action_follow_up
+
+- rule: 对地址的提问进行回答
+  steps:
+    - intent: provide_location
+    - action: action_provide_location
+
+- rule: 通过数字进行选择
+  steps:
+    - intent: select_option
+    - action: action_follow_up

@@ -1,0 +1,1 @@
+rasa train --debug && rasa run --enable-api --cors "*" --debug
