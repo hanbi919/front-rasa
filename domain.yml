@@ -27,10 +27,11 @@ actions:
   - action_detail
   - action_follow_up
   - action_provide_location
+  - action_restart
   # - action_restarted
 
 slots:
-  # 追问
+  # 保存追问的问题
   follow_up:
     type: text
     influence_conversation: false
@@ -38,6 +39,20 @@ slots:
     # - type: from_text 
     - type: custom
       # entity: main_item
+  # 保存对追问的回答
+  answer:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+        conditions:
+         - active_loop: follow_up_form
+           requested_slot: answer
+
+forms:
+  follow_up_form:
+    required_slots:
+      - answer
 
 responses:
   utter_first_greeting:
@@ -63,6 +78,9 @@ responses:
 
   utter_fallback:
   - text: "我没理解您的意思，请再试一次。"
+
+  utter_unknown:
+  - text: "您的办理业务暂不支持查询..."
 
 session_config:
   session_expiration_time: 60

@@ -1,39 +1,98 @@
 from typing import Any, Text, Dict, List
-
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.events import SlotSet
 from tools.district_agent import district_chatbot
 from tools.call_rasa import rasa_client
-import logging
-from rasa_sdk.events import SlotSet
 from tools.const import SELECTION
-
+from tools.decorators import log_execution_time
+import logging
 
 # 初始化日志记录器
 logger = logging.getLogger(__name__)
 
 
 class ActionDetail(Action):
+    """处理位置信息查询的动作类"""
 
     def name(self) -> Text:
+        """返回动作名称"""
         return "action_provide_location"
 
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+    @log_execution_time
+    async def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        """
+        执行位置信息查询的主要逻辑
+        
+        Args:
+            dispatcher: 用于发送消息的调度器
+            tracker: 当前对话追踪器
+            domain: 对话域定义
+            
+        Returns:
+            返回需要设置的事件列表
+        """
+        # 获取用户输入
+        user_input = self._get_user_input(tracker)
 
-        # dispatcher.utter_message(text="欢迎使用智能客服系统")
-        input = tracker.latest_message.get("text")
-        result = district_chatbot.chat(input)
-        # data = self.parse_response(result)
-        print(result['answer'])
-        conversation_id = tracker.sender_id
-        resp = rasa_client.send_message(
-            sender_id=conversation_id, message=result['answer'])
-        logger.debug(f"from rasa msg is {resp}")
-        msg = resp[0]['text']
-        dispatcher.utter_message(text=msg)
-        if SELECTION in msg:
-            return [SlotSet("follow_up", msg)]
+        # 与地区聊天机器人交互
+        bot_response = self._query_district_chatbot(user_input)
 
+        # 发送响应到Rasa并处理结果
+        return self._process_rasa_response(
+            dispatcher,
+            tracker.sender_id,
+            bot_response
+        )
+
+    def _get_user_input(self, tracker: Tracker) -> str:
+        """从tracker中获取用户输入"""
+        return tracker.latest_message.get("text")
+
+    def _query_district_chatbot(self, user_input: str) -> Dict[Text, Any]:
+        """查询地区聊天机器人并返回响应"""
+        response = district_chatbot.chat(user_input)
+        logger.debug(f"District chatbot response: {response}")
+        return response
+
+    def _process_rasa_response(
+        self,
+        dispatcher: CollectingDispatcher,
+        conversation_id: str,
+        bot_response: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        """
+        处理Rasa的响应并返回适当的事件
+        
+        Args:
+            dispatcher: 消息调度器
+            conversation_id: 会话ID
+            bot_response: 聊天机器人的响应
+            
+        Returns:
+            需要设置的事件列表
+        """
+        # 发送到Rasa主服务
+        rasa_response = rasa_client.send_message(
+            sender_id=conversation_id,
+            message=bot_response['answer']
+        )
+        logger.debug(f"Rasa service response: {rasa_response}")
+
+        # 获取响应消息并发送给用户
+        response_message = rasa_response[0]['text']
+        dispatcher.utter_message(text=response_message)
+
+        # 根据响应内容决定返回的事件
+        return self._build_response_events(response_message)
+
+    def _build_response_events(self, message: str) -> List[Dict[Text, Any]]:
+        """根据消息内容构建返回的事件列表"""
+        if SELECTION in message:
+            return [SlotSet("follow_up", message)]
         return []

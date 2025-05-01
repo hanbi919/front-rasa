@@ -22,6 +22,22 @@ class ActionRestarted(Action):
         conversation_id = tracker.sender_id
         resp = rasa_client.send_message(
             sender_id=conversation_id, message="/restart")
-        dispatcher.utter_message(text="会话已初始化")
+        dispatcher.utter_message(text="欢迎使用智能客服系统")
 
+        return []
+
+
+class ActionRestart(Action):
+    """专门处理重启的动作"""
+
+    def name(self) -> Text:
+        return "action_restart"
+
+    async def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        # 只返回 Restarted 事件，不发送消息
         return [Restarted()]

@@ -82,3 +82,21 @@ rules:
   steps:
     - intent: select_option
     - action: action_follow_up
+
+# - rule: Activate form
+#   steps:
+#   - intent: provide_location
+#   - action: action_provide_location
+#   - action: follow_up_form
+#   - active_loop: follow_up_form
+
+- rule: Submit form
+  condition:
+  - active_loop: follow_up_form
+  steps:
+  - action: follow_up_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_follow_up
+
