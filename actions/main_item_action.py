@@ -155,5 +155,5 @@ class ActionMainItem(Action):
 
     ) -> List[Dict[Text, Any]]:
         """处理追问问题类型的响应"""
-        dispatcher.utter_message(response="utter_unknown")
+        dispatcher.utter_message(response="utter_main_item_unknown")
         return []

@@ -79,8 +79,14 @@ responses:
   utter_fallback:
   - text: "我没理解您的意思，请再试一次。"
 
-  utter_unknown:
+  utter_main_item_unknown:
   - text: "您的办理业务暂不支持查询..."
+
+  utter_district_error:
+  - text: "处理地址信息错误..."
+
+  utter_follow_up_no_match:
+  - text: "无匹配选项,请重新选择"
 
 session_config:
   session_expiration_time: 60

@@ -38,6 +38,9 @@ class ActionFollowUp(Action):
 
         # 与追问聊天机器人交互
         data = follow_up_chatbot.chat(format_str)
+        if "无匹配选项" in data['answer']:
+            dispatcher.utter_message(response="utter_follow_up_no_match")
+            return []
         logger.debug(f"From follow_up_chatbot: {data['answer']}")
 
         # 发送消息到Rasa并获取响应

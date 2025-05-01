@@ -43,6 +43,10 @@ class ActionDetail(Action):
         # 与地区聊天机器人交互
         bot_response = self._query_district_chatbot(user_input)
 
+        if "无地址信息" in bot_response:
+            dispatcher.utter_message(response="utter_district_error")
+            return []
+
         # 发送响应到Rasa并处理结果
         return self._process_rasa_response(
             dispatcher,

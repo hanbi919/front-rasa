@@ -53,6 +53,8 @@ nlu:
     - 我想了解社保转移流程
     - 如何办理不动产权证
     - 我想咨询人才引进落户
+    - 港澳通行证咋办
+    - 不动产权证如何办理
  
 - intent: ask_processing_location
   examples: |
