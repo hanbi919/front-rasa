@@ -29,7 +29,8 @@ actions:
   - action_provide_location
   - action_restart
   # - action_restarted
-
+entities:
+  - business
 slots:
   # 保存追问的问题
   follow_up:

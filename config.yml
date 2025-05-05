@@ -12,7 +12,7 @@ language: zh
 
 pipeline:  
 - name: JiebaTokenizer
-  dictionary_path: "pipeline/jieba_userdict" 
+  dictionary_path: "./pipeline/jieba_userdict" 
 - name: RegexFeaturizer
 - name: LexicalSyntacticFeaturizer
 - name: CountVectorsFeaturizer
@@ -23,9 +23,9 @@ pipeline:
   min_ngram: 1                                                      # 不进行组合单词匹配
   max_ngram: 3                                                      # 最多组合3个单词匹配
   use_lemma: False
-# - name: LanguageModelFeaturizer
-#   model_name: "bert"
-#   model_weights: "pipeline/bert-base-chinese"
+- name: LanguageModelFeaturizer
+  model_name: "bert"
+  model_weights: "./pipeline/bert-base-chinese"
 - name: RegexEntityExtractor
   case_sensitive: False
   use_lookup_tables: True
@@ -45,10 +45,10 @@ pipeline:
   REGULARIZATION_CONSTANT: 0.005                                    # 默认0.002，加强约束应对专业术语
   EVAL_NUM_EPOCHS: 10                                               # 默认20，200+意图数据复杂，建议每10轮评估一次防止跑偏
   BILOU_FLAG: False                                                 # 默认true，BILOU标注适合英文长实体，中文短实体易出错
-  TENSORBOARD_LOG_DIR: "./logs"                                     # 训练过程可视化监控
-  TENSORBOARD_LOG_LEVEL: "batch"                                    # 默认epoch，细粒度监控
+  tensorboard_log_directory: ./log
+  tensorboard_log_level: epoch                                      # EPOCH 训练过程可视化监控
+  constrain_similarities: True                                      # 默认false，强制区分200+相似金融意图
   SPLIT_ENTITIES_BY_COMMA: False                                    # 默认True，中文不用逗号分割实体
-  CONSTRAIN_SIMILARITIES: True                                      # 默认false，强制区分200+相似金融意图
   RENORMALIZE_CONFIDENCES: True                                     # 默认false,当出现多个意图得分接近时启用
   DROP_SMALL_LAST_BATCH: True   
   features:
