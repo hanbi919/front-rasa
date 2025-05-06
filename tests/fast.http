@@ -1,0 +1,19 @@
+POST http://localhost:5678/new_conversation
+
+-H "Content-Type: application/json" \
+-d '{"api_key": "your_api_key"}'
+###
+POST http://localhost:5678/new_conversation
+Content-Type: application/json; charset=utf-8
+
+{
+  "api_key": "d05fd27292p9imkl4ujg"
+}
+
+###
+POST "http://localhost:5678/chat"
+Content-Type: application/json; charset=utf-8
+
+{"conversation_id": "d0cs9k4qp7gd0aljikc0", 
+"question": "工伤保险转诊转院申请确认", 
+"api_key": "d05fd27292p9imkl4ujg"}
