@@ -3,7 +3,7 @@ POST http://localhost:5678/new_conversation
 -H "Content-Type: application/json" \
 -d '{"api_key": "your_api_key"}'
 ###
-POST http://localhost:5678/new_conversation
+POST http://116.141.0.116:5678/new_conversation
 Content-Type: application/json; charset=utf-8
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json; charset=utf-8
 }
 
 ###
-POST "http://localhost:5678/chat"
+POST "http://116.141.0.116:5678/chat"
 Content-Type: application/json; charset=utf-8
 
 {"conversation_id": "d0cs9k4qp7gd0aljikc0", 
