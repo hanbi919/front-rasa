@@ -167,7 +167,7 @@ async def chat_with_bot(request: ChatRequest):
     if cached_result is not None:
         cached_data = json.loads(cached_result)
         # 删除 Redis 中的 Key（确保数据已成功加载后再删除）
-        redis_conn.delete(cache_key)
+        # redis_conn.delete(cache_key)
         return ChatResponse(
             success=True,
             answer=cached_data["answer"],
