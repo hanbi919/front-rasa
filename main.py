@@ -23,7 +23,7 @@ REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
 REDIS_PASSWORD = None  # 如果有密码请设置
-REDIS_EXPIRE = 3600  # 缓存过期时间(秒)
+REDIS_EXPIRE = 10  # 缓存过期时间(秒)
 
 # 初始化Redis连接池
 redis_pool = redis.ConnectionPool(
@@ -167,7 +167,7 @@ async def chat_with_bot(request: ChatRequest):
     if cached_result is not None:
         cached_data = json.loads(cached_result)
         # 删除 Redis 中的 Key（确保数据已成功加载后再删除）
-        redis_conn.delete(cache_key)
+        # redis_conn.delete(cache_key)
         return ChatResponse(
             success=True,
             answer=cached_data["answer"],
