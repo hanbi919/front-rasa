@@ -83,13 +83,13 @@ class ChatBot:
     def create_conversation(self) -> str:
         """创建新对话"""
         """创建新对话"""
-        redis_conn = get_redis_connection()
-        cache_key = generate_conversation_cache_key(self.api_key)
+        # redis_conn = get_redis_connection()
+        # cache_key = generate_conversation_cache_key(self.api_key)
 
         # 尝试从缓存获取
-        cached_conversation = redis_conn.get(cache_key)
-        if cached_conversation is not None:
-            return cached_conversation
+        # cached_conversation = redis_conn.get(cache_key)
+        # if cached_conversation is not None:
+            # return cached_conversation
         url = f"http://{self.host}:{self.port}/api/proxy/api/v1/create_conversation"
         headers = {"Apikey": self.api_key, "Content-Type": "application/json"}
         data = {"Inputs": {"user_id": "admin123456"},
@@ -101,8 +101,8 @@ class ChatBot:
             conversation = response.json()
             conversation_id = conversation['Conversation']['AppConversationID']
             # 将新会话存入Redis
-            redis_conn.setex(
-                cache_key, CONVERSATION_CACHE_EXPIRE, conversation_id)
+            # redis_conn.setex(
+                # cache_key, CONVERSATION_CACHE_EXPIRE, conversation_id)
             return conversation_id
         except Exception as e:
             raise HTTPException(
@@ -123,7 +123,7 @@ class ChatBot:
             'Query': query,
             'AppConversationID': self.conversation_id,
             'ResponseMode': 'streaming',
-            'UserID': "admin123",  # 使用固定用户ID
+            'UserID': "admin123567",  # 使用固定用户ID
         }
 
         start_time = time.time()
