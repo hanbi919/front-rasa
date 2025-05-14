@@ -17,3 +17,8 @@ APIKEY：d091308a8cgtr0h4npng
 
 
 请问您是要了解哪一项办理主项内容呢？1：排污许可核发 2：排污许可变更 3：排污许可注销
+
+
+### 运行main.py
+
+uvicorn main:app --workers 4 --host 0.0.0.0 --port 5678

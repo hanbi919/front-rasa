@@ -94,8 +94,8 @@ class ChatBot:
             # return cached_conversation
         url = f"http://{self.host}:{self.port}/api/proxy/api/v1/create_conversation"
         headers = {"Apikey": self.api_key, "Content-Type": "application/json"}
-        data = {"Inputs": {"user_id": "admin123456"},
-                "UserID": "admin123456"}  # 使用固定用户ID
+        data = {"Inputs": {"user_id": "admin123"},
+                "UserID": "admin123"}  # 使用固定用户ID
 
         try:
             response = httpx.post(url, headers=headers, json=data, timeout=10)
@@ -125,7 +125,7 @@ class ChatBot:
             'Query': query,
             'AppConversationID': self.conversation_id,
             'ResponseMode': 'streaming',
-            'UserID': "admin123567",  # 使用固定用户ID
+            'UserID': "admin123",  # 使用固定用户ID
         }
 
         start_time = time.time()
@@ -249,6 +249,6 @@ async def start_new_conversation(request: NewConversationRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5678, workers=4,  # 根据 CPU 核心数调整
+    uvicorn.run(app, host="0.0.0.0", port=5678,   # 根据 CPU 核心数调整
                 limit_concurrency=1000,  # 最大并发连接数
                 timeout_keep_alive=30,)  # Keep-Alive 超时时间)
