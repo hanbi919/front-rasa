@@ -38,7 +38,8 @@ redis_pool = redis.ConnectionPool(
 
 
 class NewConversationRequest(BaseModel):
-    api_key: str    
+    api_key: str
+
 
 class ChatRequest(BaseModel):
     conversation_id: str  # 现在使用 conversation_id 作为用户标识
@@ -71,6 +72,7 @@ def generate_cache_key(conversation_id: str, question: str) -> str:
 def generate_conversation_cache_key(api_key: str) -> str:
     """生成会话缓存键，基于 api_key"""
     return f"conversation:{hashlib.sha256(api_key.encode()).hexdigest()}"
+
 
 class ChatBot:
     def __init__(self, api_key: str, conversation_id: Optional[str] = None,
@@ -247,4 +249,6 @@ async def start_new_conversation(request: NewConversationRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5678)
+    uvicorn.run(app, host="0.0.0.0", port=5678, workers=8,  # 根据 CPU 核心数调整
+                limit_concurrency=1000,  # 最大并发连接数
+                timeout_keep_alive=30,  # Keep-Alive 超时时间)
