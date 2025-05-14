@@ -24,7 +24,7 @@ REDIS_PORT = 6379
 REDIS_DB = 0
 REDIS_PASSWORD = None  # 如果有密码请设置
 REDIS_EXPIRE = 10  # 缓存过期时间(秒)
-
+CONVERSATION_CACHE_EXPIRE = 10  # 会话缓存过期时间(秒)，设为10s
 # 初始化Redis连接池
 redis_pool = redis.ConnectionPool(
     host=REDIS_HOST,
@@ -68,6 +68,10 @@ def generate_cache_key(conversation_id: str, question: str) -> str:
     return hashlib.sha256(key_str.encode()).hexdigest()
 
 
+def generate_conversation_cache_key(api_key: str) -> str:
+    """生成会话缓存键，基于 api_key"""
+    return f"conversation:{hashlib.sha256(api_key.encode()).hexdigest()}"
+
 class ChatBot:
     def __init__(self, api_key: str, conversation_id: Optional[str] = None,
                  host: str = "115.190.98.254", port: str = "80"):
@@ -78,16 +82,28 @@ class ChatBot:
 
     def create_conversation(self) -> str:
         """创建新对话"""
+        """创建新对话"""
+        redis_conn = get_redis_connection()
+        cache_key = generate_conversation_cache_key(self.api_key)
+
+        # 尝试从缓存获取
+        cached_conversation = redis_conn.get(cache_key)
+        if cached_conversation is not None:
+            return cached_conversation
         url = f"http://{self.host}:{self.port}/api/proxy/api/v1/create_conversation"
         headers = {"Apikey": self.api_key, "Content-Type": "application/json"}
-        data = {"Inputs": {"user_id": "admin123"},
-                "UserID": "admin123"}  # 使用固定用户ID
+        data = {"Inputs": {"user_id": "admin123456"},
+                "UserID": "admin123456"}  # 使用固定用户ID
 
         try:
             response = httpx.post(url, headers=headers, json=data, timeout=10)
             response.raise_for_status()
             conversation = response.json()
-            return conversation['Conversation']['AppConversationID']
+            conversation_id = conversation['Conversation']['AppConversationID']
+            # 将新会话存入Redis
+            redis_conn.setex(
+                cache_key, CONVERSATION_CACHE_EXPIRE, conversation_id)
+            return conversation_id
         except Exception as e:
             raise HTTPException(
                 status_code=500, detail=f"Failed to create conversation: {str(e)}")
