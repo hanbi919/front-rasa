@@ -9,7 +9,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # 设置日志文件路径
 LOG_FILE = "error.log"
+"""_summary_
+本程序用于检查泛化的效果
 
+Raises:
+    ValueError: _description_
+
+Returns:
+    _type_: _description_
+"""
 
 class Chatbot:
     def analyze(self, main_item):
@@ -38,7 +46,7 @@ def format_list_items(items):
 def process_excel(input_file, output_file):
     # 读取输入Excel文件
     df = pd.read_excel(input_file)
-    df = df.iloc[799:899]  # 包含第100行，不包含第200行
+    df = df.iloc[0:99]  # 包含第100行，不包含第200行
 
     # 确保有一级事项名称列
     if '一级事项名称' not in df.columns:
@@ -87,6 +95,6 @@ def process_excel(input_file, output_file):
 # 使用示例
 if __name__ == "__main__":
     input_excel = "tools/泛化.xlsx"  # 替换为您的输入文件路径
-    output_excel = "analysis_results900.xlsx"  # 输出文件路径
+    output_excel = "analysis_results100.xlsx"  # 输出文件路径
 
     process_excel(input_excel, output_excel)

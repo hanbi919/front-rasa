@@ -19,6 +19,14 @@ nlu:
     - 办理[身份证](business)需要什么材料
     - [社保卡](business)带什么材料
     - 如何办理[社保卡]
+    - [印刷品经营变更](business)需要什么材料
+    - [境外购物退税商店备案](business)咋办
+    - [住房公积金贷款二手房贷款](business)能办吗
+    - [公积金](business)办理
+    - 办理[公积金](business)
+    - 我想办理[工程消防设计许可](business)需要什么材料
+    - 我想办理[不动产其他性质登记](business)
+    - [社保补办](business)咋办
  
 - intent: ask_processing_location
   examples: |
@@ -41,6 +49,8 @@ nlu:
     - 哪里能办
     - 哪里可以办理
     - 去哪儿办
+    - 在哪里办
+    - 具体位置
     
 - intent: ask_processing_time
   examples: |

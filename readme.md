@@ -22,3 +22,18 @@ APIKEY：d091308a8cgtr0h4npng
 ### 运行main.py
 
 uvicorn main:app --workers 4 --host 0.0.0.0 --port 5678
+
+### 工具列表
+
+1. tools/check.py 用于利用智能体对泛化的内容进行检查
+
+http://115.190.98.254/product/llm/chat/d0fn42n292p9imkl908g
+
+### change chat
+ packages/ui/src/index.html 
+ server-url ="http://116.141.0.116:5005
+
+ git diff examples/react/src/App.tsx
+ serverUrl="https://localhost:5005/webhooks/rest/webhook
+
+ examples/html/index.html
