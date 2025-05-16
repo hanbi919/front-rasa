@@ -2,30 +2,30 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import redis
-import httpx
+import requests
 from typing import Optional
 import json
 import hashlib
-import http.client
 import time
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境应更严格
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Redis 配置
+
+# Redis configuration
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
-REDIS_PASSWORD = None  # 如果有密码请设置
-REDIS_EXPIRE = 10  # 缓存过期时间(秒)
-CONVERSATION_CACHE_EXPIRE = 10  # 会话缓存过期时间(秒)，设为10s
-# 初始化Redis连接池
+REDIS_PASSWORD = None
+REDIS_EXPIRE = 10  # Cache expiration time in seconds
+
+# Initialize Redis connection pool
 redis_pool = redis.ConnectionPool(
     host=REDIS_HOST,
     port=REDIS_PORT,
@@ -34,19 +34,14 @@ redis_pool = redis.ConnectionPool(
     decode_responses=True
 )
 
-# 请求模型
-
-
-class NewConversationRequest(BaseModel):
-    api_key: str
+# Request models
 
 
 class ChatRequest(BaseModel):
-    conversation_id: str  # 现在使用 conversation_id 作为用户标识
     question: str
-    api_key: str
 
-# 响应模型
+
+# Response model
 
 
 class ChatResponse(BaseModel):
@@ -54,156 +49,121 @@ class ChatResponse(BaseModel):
     answer: str
     duration: str
     from_cache: bool
-    conversation_id: str
     message: Optional[str] = None
 
 
 def get_redis_connection():
-    """获取Redis连接"""
+    """Get Redis connection"""
     return redis.Redis(connection_pool=redis_pool)
 
 
-def generate_cache_key(conversation_id: str, question: str) -> str:
-    """生成缓存键，基于 conversation_id 和 question"""
-    key_str = f"{conversation_id}:{question}"
+def generate_cache_key(sender: str, message: str) -> str:
+    """Generate cache key based on sender and message"""
+    key_str = f"{sender}:{message}"
     return hashlib.sha256(key_str.encode()).hexdigest()
 
+import re
+# 方法1：使用正则表达式
+def extract_user_message(input_str):
+    # 匹配模式：用户问题："内容"，用户标识："ID"
+    # 用户问题：“门诊慢特病待遇认定怎么办理”，用户标识：“asdiondk1lsjhuioqwejl112”
+    pattern = r'用户问题：“(.+?)”，用户标识：“(.+?)”'
+    match = re.search(pattern, input_str)
 
-def generate_conversation_cache_key(api_key: str) -> str:
-    """生成会话缓存键，基于 api_key"""
-    return f"conversation:{hashlib.sha256(api_key.encode()).hexdigest()}"
+    if match:
+        message = match.group(1)  # 门诊慢特病待遇认定怎么办理
+        user = match.group(2)     # asdiondk1lsjhuioqwejl112
+        return user, message
+    else:
+        return None, None
 
 
 class ChatBot:
-    def __init__(self, api_key: str, conversation_id: Optional[str] = None,
-                 host: str = "115.190.98.254", port: str = "80"):
-        self.api_key = api_key
+    def __init__(self,  host: str = "localhost", port: str = "5005"):
+
         self.host = host
         self.port = port
-        self.conversation_id = conversation_id  # 使用传入的 conversation_id
 
-    def create_conversation(self) -> str:
-        """创建新对话"""
-        """创建新对话"""
-        # redis_conn = get_redis_connection()
-        # cache_key = generate_conversation_cache_key(self.api_key)
-
-        # 尝试从缓存获取
-        # cached_conversation = redis_conn.get(cache_key)
-        # if cached_conversation is not None:
-            # return cached_conversation
-        url = f"http://{self.host}:{self.port}/api/proxy/api/v1/create_conversation"
-        headers = {"Apikey": self.api_key, "Content-Type": "application/json"}
-        data = {"Inputs": {"user_id": "admin123"},
-                "UserID": "admin123"}  # 使用固定用户ID
-
-        try:
-            response = httpx.post(url, headers=headers, json=data, timeout=10)
-            response.raise_for_status()
-            conversation = response.json()
-            conversation_id = conversation['Conversation']['AppConversationID']
-            # 将新会话存入Redis
-            # redis_conn.setex(
-                # cache_key, CONVERSATION_CACHE_EXPIRE, conversation_id)
-            return conversation_id
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Failed to create conversation: {str(e)}")
-
-    def chat(self, query: str) -> dict:
-        """与远程聊天API交互"""
-        if not self.conversation_id:
-            self.conversation_id = self.create_conversation()
+    def chat(self, sender, message) -> dict:
+        """Interact with the Rasa webhook API"""
 
         result = ""
         headers = {
-            'Apikey': self.api_key,
-            'Accept': 'text/event-stream',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         }
         data = {
-            'Query': query,
-            'AppConversationID': self.conversation_id,
-            'ResponseMode': 'streaming',
-            'UserID': "admin123",  # 使用固定用户ID
+            "sender": sender,
+            "message": message
         }
-
+        print(f"data is {data}")
+        print(f"sender is {sender}")
+        print(f"message is {message}")
         start_time = time.time()
         try:
-            connection = http.client.HTTPConnection(
-                host=self.host, port=self.port)
-            connection.request('POST', '/api/proxy/api/v1/chat_query',
-                               body=json.dumps(data), headers=headers)
-            response = connection.getresponse()
+            response = requests.post(
+                f"http://{self.host}:{self.port}/webhooks/rest/webhook",
+                headers=headers,
+                json=data,
+                timeout=30.0
+            )
+            response.raise_for_status()
 
-            if response.status == 200:
-                for line in response:
-                    line = line.decode('utf-8').strip()
-                    if line.startswith('data:data:'):
-                        try:
-                            json_data = json.loads(line[10:])
-                            if json_data['event'] == "message":
-                                result += json_data['answer']
-                        except Exception:
-                            continue
+            # Rasa typically returns a list of messages
+            responses = response.json()
+            if isinstance(responses, list) and len(responses) > 0:
+                result = responses[0].get('text', '')
             else:
-                raise HTTPException(
-                    status_code=response.status,
-                    detail=f"Remote API error: {response.reason}"
-                )
+                result = "No response from bot"
+
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(
+                status_code=500 if not hasattr(
+                    e.response, 'status_code') else e.response.status_code,
+                detail=f"Rasa API error: {str(e)}"
+            )
         except Exception as e:
             raise HTTPException(
-                status_code=500, detail=f"Connection error: {str(e)}")
-        finally:
-            connection.close()
+                status_code=500, detail=f"Connection error: {str(e)}"
+            )
 
         end_time = time.time()
         duration = "{:.2f}".format(end_time - start_time)
 
         return {
             "answer": result,
-            "duration": duration,
-            "conversation_id": self.conversation_id
+            "duration": duration
         }
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat_with_bot(request: ChatRequest):
-    """聊天接口，带缓存功能"""
+def chat_with_bot(request: ChatRequest):
+    """Chat endpoint with caching functionality"""
     redis_conn = get_redis_connection()
+    sender, message = extract_user_message(request.question)
+    # Generate cache key based on sender and message
+    cache_key = generate_cache_key(sender, message)
 
-    # 初始化聊天机器人实例，使用传入的 conversation_id
-    bot = ChatBot(api_key=request.api_key,
-                  conversation_id=request.conversation_id)
-
-    # 生成问题缓存键（基于 conversation_id 和 question）
-    cache_key = generate_cache_key(
-        bot.conversation_id or "new", request.question)
-
-    # 尝试从缓存获取
+    # Try to get from cache
     cached_result = redis_conn.get(cache_key)
     if cached_result is not None:
         cached_data = json.loads(cached_result)
-        # 删除 Redis 中的 Key（确保数据已成功加载后再删除）
-        # redis_conn.delete(cache_key)
         return ChatResponse(
             success=True,
             answer=cached_data["answer"],
             duration=cached_data["duration"],
             from_cache=True,
-            conversation_id=bot.conversation_id or cached_data["conversation_id"],
             message="Result retrieved from cache"
         )
 
-    # 缓存中没有，调用远程API
+    # If not in cache, call Rasa API
     try:
-        result = bot.chat(request.question)
+        bot = ChatBot()
+        result = bot.chat(sender, message)
 
-        # 将结果存入Redis
+        # Store result in Redis
         cache_data = {
             "answer": result["answer"],
-            "duration": result["duration"],
-            "conversation_id": result["conversation_id"]
+            "duration": result["duration"]
         }
         redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
 
@@ -212,8 +172,7 @@ async def chat_with_bot(request: ChatRequest):
             answer=result["answer"],
             duration=result["duration"],
             from_cache=False,
-            conversation_id=result["conversation_id"],
-            message="Result retrieved from remote API and cached"
+            message="Result retrieved from Rasa API and cached"
         )
     except HTTPException as e:
         return ChatResponse(
@@ -221,34 +180,12 @@ async def chat_with_bot(request: ChatRequest):
             answer="",
             duration="0.00",
             from_cache=False,
-            conversation_id=bot.conversation_id or "",
             message=str(e.detail)
         )
 
 
-@app.post("/new_conversation")
-async def start_new_conversation(request: NewConversationRequest):
-    """开始新的对话会话"""
-    bot = ChatBot(api_key=request.api_key)
-
-    try:
-        # 创建新会话
-        conversation_id = bot.create_conversation()
-
-        return {
-            "success": True,
-            "conversation_id": conversation_id,
-            "message": "New conversation started"
-        }
-    except HTTPException as e:
-        return {
-            "success": False,
-            "conversation_id": "",
-            "message": str(e.detail)
-        }
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5678,   # 根据 CPU 核心数调整
-                limit_concurrency=1000,  # 最大并发连接数
-                timeout_keep_alive=30,)  # Keep-Alive 超时时间)
+    uvicorn.run(app, host="0.0.0.0", port=5678,
+                limit_concurrency=1000,
+                timeout_keep_alive=30)

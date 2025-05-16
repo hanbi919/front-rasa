@@ -218,6 +218,7 @@ nlu:
 - intent: select_option
   examples: |
     - 1
+    - 2
     - 选择2
     - 我选3
     - 第四个
