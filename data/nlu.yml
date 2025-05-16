@@ -27,6 +27,8 @@ nlu:
     - 我想办理[工程消防设计许可](business)需要什么材料
     - 我想办理[不动产其他性质登记](business)
     - [社保补办](business)咋办
+    - [门诊慢特病待遇认定](business)怎么办理
+    - 我想咨询[围产费用补贴](business)
  
 - intent: ask_processing_location
   examples: |
@@ -231,7 +233,11 @@ nlu:
     - 选择第十个
     - 第11项
     
-
+- intent: restart
+  examples: |
+    - /restart
+    - 重新开始
+    - 重置会话
 - intent: provide_location
   examples: |
     - 朝阳区重庆街道

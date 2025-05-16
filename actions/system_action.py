@@ -40,4 +40,5 @@ class ActionRestart(Action):
         domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
         # 只返回 Restarted 事件，不发送消息
+        dispatcher.utter_message(response="utter_restart_confirmation")
         return [Restarted()]

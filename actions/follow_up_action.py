@@ -33,7 +33,7 @@ class ActionFollowUp(Action):
         answer = tracker.get_slot("answer")
         follow_up = tracker.get_slot("follow_up")
 
-        # 构建追问格式字符串
+        # 构建追问格式字符串医疗参保手续办理怎么办理
         format_str = self._build_follow_up_format(follow_up, user_answer)
 
         # 与追问聊天机器人交互
@@ -73,7 +73,7 @@ class ActionFollowUp(Action):
 
     def _build_response_events(self, message: str) -> List[Dict[Text, Any]]:
         """根据消息内容构建返回事件列表"""
-        if SELECTION in message:
+        if SELECTION in message or "想查询哪方面" in message:
             return [
                 SlotSet("follow_up", message),
                 SlotSet("answer", None),

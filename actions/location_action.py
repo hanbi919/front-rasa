@@ -28,12 +28,12 @@ class ActionDetail(Action):
     ) -> List[Dict[Text, Any]]:
         """
         执行位置信息查询的主要逻辑
-        
+
         Args:
             dispatcher: 用于发送消息的调度器
             tracker: 当前对话追踪器
             domain: 对话域定义
-            
+
         Returns:
             返回需要设置的事件列表
         """
@@ -72,20 +72,24 @@ class ActionDetail(Action):
     ) -> List[Dict[Text, Any]]:
         """
         处理Rasa的响应并返回适当的事件
-        
+
         Args:
             dispatcher: 消息调度器
             conversation_id: 会话ID
             bot_response: 聊天机器人的响应
-            
+
         Returns:
             需要设置的事件列表
         """
         # 发送到Rasa主服务
+        area = bot_response['answer']
         rasa_response = rasa_client.send_message(
             sender_id=conversation_id,
-            message=bot_response['answer']
+            message=area
+            # f'/all_area_intent{"area":"{area}"}'
         )
+        # "message": "/all_district_intent{\"main_item\":\"辅助器具异地配置申请\"\\}"
+
         logger.debug(f"Rasa service response: {rasa_response}")
 
         # 获取响应消息并发送给用户

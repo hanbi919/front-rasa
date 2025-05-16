@@ -16,13 +16,13 @@ pipeline:
 - name: RegexFeaturizer
 - name: LexicalSyntacticFeaturizer
 - name: CountVectorsFeaturizer
-  stop_words: ["的","吧","啊","哦","呢"]                            # 自定义垃圾词黑名单
-  min_df: 2                                                         # 过滤只出现1次的词（如错别字）
-  max_df: 0.9                                                       # 超过90%的文档都出现的词丢弃
-  analyzer: "word"                                                  # JiebaTokenizer分词后，带空格，按word处理
-  min_ngram: 1                                                      # 不进行组合单词匹配
-  max_ngram: 3                                                      # 最多组合3个单词匹配
-  use_lemma: False
+  # stop_words: ["的","吧","啊","哦","呢"]                            # 自定义垃圾词黑名单
+  # min_df: 2                                                         # 过滤只出现1次的词（如错别字）
+  # max_df: 0.9                                                       # 超过90%的文档都出现的词丢弃
+  # analyzer: "word"                                                  # JiebaTokenizer分词后，带空格，按word处理
+  # min_ngram: 1                                                      # 不进行组合单词匹配
+  # max_ngram: 3                                                      # 最多组合3个单词匹配
+  # use_lemma: False
 - name: LanguageModelFeaturizer
   model_name: "bert"
   model_weights: "./pipeline/bert-base-chinese"
@@ -32,31 +32,31 @@ pipeline:
   use_regexes: True
   use_word_boundaries: False
 - name: DIETClassifier                                              # 用于意图分类和实体识别
-  TRANSFORMER_SIZE: 512                                             # 默认256，扩大容量，记住复杂术语
-  NUM_HEADS: 8                                                      # 默认4，更多视角区分200+意图
-  BATCH_SIZES: [32, 128]                                            # 默认[64, 256]，控制训练时每次喂给模型的样本数量
-  LEARNING_RATE: 0.0005                                             # 默认0.001，金融领域意图多且相似度高需精细调整参数
-  EMBEDDING_DIMENSION: 256                                          # 默认20，将每个中文字/词转换为256维的数学向量
-  DENSE_DIMENSION: {TEXT: 256, LABEL: 128}                          # 默认{TEXT: 128, LABEL: 20}，文本特征压缩到256维，标签特征压缩到128维
-  NUM_NEG: 40                                                       # 默认20，每个训练样本配30个错误意图作为对比，对相似意图（如"基金赎回"vs"基金转换"）需较多负样本增强区分，可适当增加到40-50
-  SIMILARITY_TYPE: "cosine"                                         # 默认auto，用余弦相似度衡量文本与意图的匹配度，有效处理"请问怎么买ETF？"和"ETF申购流程"这类同义不同表达的情况    
-  LOSS_TYPE: "margin"                                               # 默认cross_entropy，有效处理高度相似意图
-  DROP_RATE: 0.2                                                    # 默认0.2，200+意图需更高随机性防止过拟合
-  REGULARIZATION_CONSTANT: 0.005                                    # 默认0.002，加强约束应对专业术语
-  EVAL_NUM_EPOCHS: 10                                               # 默认20，200+意图数据复杂，建议每10轮评估一次防止跑偏
-  BILOU_FLAG: False                                                 # 默认true，BILOU标注适合英文长实体，中文短实体易出错
-  tensorboard_log_directory: ./log
-  tensorboard_log_level: epoch                                      # EPOCH 训练过程可视化监控
-  constrain_similarities: True                                      # 默认false，强制区分200+相似金融意图
-  SPLIT_ENTITIES_BY_COMMA: False                                    # 默认True，中文不用逗号分割实体
-  RENORMALIZE_CONFIDENCES: True                                     # 默认false,当出现多个意图得分接近时启用
-  DROP_SMALL_LAST_BATCH: True   
-  features:
-    text:
-      - name: CountVectorsFeaturizer
-      - name: LexicalSyntacticFeaturizer
-    label:
-      - name: CountVectorsFeaturizer                                    # 默认false， 确保批次一致性
+  # TRANSFORMER_SIZE: 512                                             # 默认256，扩大容量，记住复杂术语
+  # NUM_HEADS: 8                                                      # 默认4，更多视角区分200+意图
+  # BATCH_SIZES: [32, 128]                                            # 默认[64, 256]，控制训练时每次喂给模型的样本数量
+  # LEARNING_RATE: 0.0005                                             # 默认0.001，金融领域意图多且相似度高需精细调整参数
+  # EMBEDDING_DIMENSION: 256                                          # 默认20，将每个中文字/词转换为256维的数学向量
+  # DENSE_DIMENSION: {TEXT: 256, LABEL: 128}                          # 默认{TEXT: 128, LABEL: 20}，文本特征压缩到256维，标签特征压缩到128维
+  # NUM_NEG: 40                                                       # 默认20，每个训练样本配30个错误意图作为对比，对相似意图（如"基金赎回"vs"基金转换"）需较多负样本增强区分，可适当增加到40-50
+  # SIMILARITY_TYPE: "cosine"                                         # 默认auto，用余弦相似度衡量文本与意图的匹配度，有效处理"请问怎么买ETF？"和"ETF申购流程"这类同义不同表达的情况    
+  # LOSS_TYPE: "margin"                                               # 默认cross_entropy，有效处理高度相似意图
+  # DROP_RATE: 0.2                                                    # 默认0.2，200+意图需更高随机性防止过拟合
+  # REGULARIZATION_CONSTANT: 0.005                                    # 默认0.002，加强约束应对专业术语
+  # EVAL_NUM_EPOCHS: 10                                               # 默认20，200+意图数据复杂，建议每10轮评估一次防止跑偏
+  # BILOU_FLAG: False                                                 # 默认true，BILOU标注适合英文长实体，中文短实体易出错
+  # tensorboard_log_directory: ./log
+  # tensorboard_log_level: epoch                                      # EPOCH 训练过程可视化监控
+  # constrain_similarities: True                                      # 默认false，强制区分200+相似金融意图
+  # SPLIT_ENTITIES_BY_COMMA: False                                    # 默认True，中文不用逗号分割实体
+  # RENORMALIZE_CONFIDENCES: True                                     # 默认false,当出现多个意图得分接近时启用
+  # DROP_SMALL_LAST_BATCH: True   
+  # features:
+  #   text:
+  #     - name: CountVectorsFeaturizer
+  #     - name: LexicalSyntacticFeaturizer
+  #   label:
+  #     - name: CountVectorsFeaturizer                                    # 默认false， 确保批次一致性
   epochs: 100                                                       # 训练轮次
 - name: FallbackClassifier
   threshold: 0.7  # 意图识别置信度阈值（低于此值触发回退）

@@ -25,12 +25,14 @@ class ActionDetail(Action):
 
         # dispatcher.utter_message(text="欢迎使用智能客服系统")
         input = tracker.latest_message.get("text")
-        result = detail_chatbot.chat(input)
+        # result = detail_chatbot.chat(input)
         # data = self.parse_response(result)
-        print(result['answer'])
+        # logger.debug(result['answer'])
         conversation_id = tracker.sender_id
+        # resp = rasa_client.send_message(
+        #     sender_id=conversation_id, message=result['answer'])
         resp = rasa_client.send_message(
-            sender_id=conversation_id, message=result['answer'])
+            sender_id=conversation_id, message=input)
         logger.debug(f"from rasa msg is {resp}")
         msg = resp[0]['text']
         dispatcher.utter_message(text=msg)

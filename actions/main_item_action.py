@@ -52,6 +52,7 @@ class ActionMainItem(Action):
             return self._handle_business_item(
                 dispatcher,
                 tracker.sender_id,
+                tracker,
                 parsed_data['content']
             )
         elif parsed_data['type'] == 'follow_up':
@@ -111,6 +112,7 @@ class ActionMainItem(Action):
         self,
         dispatcher: CollectingDispatcher,
         conversation_id: str,
+        tracker,
         message: str
     ) -> List[Dict[Text, Any]]:
         """处理业务主项类型的响应"""
@@ -126,14 +128,24 @@ class ActionMainItem(Action):
         if not msg:
             dispatcher.utter_message(text="系统查询超时，请转人工服务")
             return []
-
         dispatcher.utter_message(text=msg)
+        # str = "/ask_service_details{\"main_item\":\""+msg+"\"}"
+        # dispatcher.utter_message(text=str)
+        
 
         if SELECTION in msg:
-            return [
-                SlotSet("follow_up", msg),
-                ActiveLoop("follow_up_form")
-            ]
+            follow_up = tracker.get_slot("follow_up")
+            if follow_up is None:
+                return [
+                    SlotSet("follow_up", msg),
+                    ActiveLoop("follow_up_form")
+                ]
+            else:
+                return [
+                    SlotSet("follow_up", msg),
+                    SlotSet("answer", None),
+                    ActiveLoop("follow_up_form")
+                ]
         return []
 
     def _handle_follow_up(
