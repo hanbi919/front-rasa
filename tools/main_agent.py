@@ -9,6 +9,6 @@ class Main_Item_ChatBot(ChatBot):
             api_key="d090t37292p9imkl63j0",
         )
 
-# d0fn4ff292p9imkl90bg
+# 一级事项匹配机器人
 # 可以在这里创建一个默认实例以便其他模块直接使用
 main_item_chatbot = Main_Item_ChatBot()

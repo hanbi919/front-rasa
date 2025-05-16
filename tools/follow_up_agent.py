@@ -11,4 +11,5 @@ class Follow_up_ChatBot(ChatBot):
 
 
 # 可以在这里创建一个默认实例以便其他模块直接使用
+# 用户选项识别机器人
 follow_up_chatbot = Follow_up_ChatBot()
