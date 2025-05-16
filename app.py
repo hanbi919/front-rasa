@@ -159,6 +159,7 @@ def chat_with_bot(request: ChatRequest):
     try:
         bot = ChatBot()
         result = bot.chat(sender, message)
+        print(f"return data is {result}")
 
         # Store result in Redis
         cache_data = {

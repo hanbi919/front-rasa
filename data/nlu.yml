@@ -29,9 +29,7 @@ nlu:
     - [社保补办](business)咋办
     - [门诊慢特病待遇认定](business)怎么办理
     - 我想咨询[围产费用补贴](business)
- 
-- intent: ask_processing_location
-  examples: |
+    - 我要办[狗证](business)
     - 需要去哪里办理
     - 这个业务要到哪办
     - 办理这个要去哪里
@@ -43,16 +41,24 @@ nlu:
     - 居住证应该去哪里办
     - 食品经营许可证的办理地点
     - 港澳通行证到哪儿办
+    - 港澳通行证去哪儿办
     - 车辆年检去哪里办理
     - 不动产权证在哪个中心办
     - [身份证](business)的办理地点
     - [社保卡](business)去哪个部门办
+    - 都要拿什么材料
+    - 危货车年检的办理需要什么材料
+ 
+- intent: ask_processing_location
+  examples: |
     - 哪里办
     - 哪里能办
     - 哪里可以办理
     - 去哪儿办
     - 在哪里办
     - 具体位置
+    - 去哪里办
+    - 哪儿能办
     
 - intent: ask_processing_time
   examples: |
@@ -217,8 +223,12 @@ nlu:
 
 - intent: select_option
   examples: |
+    - 一
+    - 二
     - 1
     - 2
+    - 选择二
+    - 我选三
     - 选择2
     - 我选3
     - 第四个
