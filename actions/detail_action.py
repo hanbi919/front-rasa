@@ -5,14 +5,11 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from tools.detail_agent import detail_chatbot
 from tools.call_rasa import rasa_client
-import logging
+from .sys_logger import logger
 from rasa_sdk.events import SlotSet
 from tools.const import SELECTION
 
-# 初始化日志记录器
-logger = logging.getLogger(__name__)
-
-
+ 
 class ActionDetail(Action):
 
     def name(self) -> Text:
@@ -25,15 +22,27 @@ class ActionDetail(Action):
 
         # dispatcher.utter_message(text="欢迎使用智能客服系统")
         input = tracker.latest_message.get("text")
-        # result = detail_chatbot.chat(input)
+        logger.info("收到用户输入", extra={
+            "user_input": input,
+            "intent": tracker.latest_message.get("intent", {}).get("name"),
+            "entities": tracker.latest_message.get("entities", [])
+        })
+
+        result = detail_chatbot.chat(input)
         # data = self.parse_response(result)
-        # logger.debug(result['answer'])
+        logger.debug("获取chatbot响应", extra={
+            "response": result,
+            "duration": result.get('duration', 'N/A')
+        })
         conversation_id = tracker.sender_id
-        # resp = rasa_client.send_message(
-        #     sender_id=conversation_id, message=result['answer'])
         resp = rasa_client.send_message(
-            sender_id=conversation_id, message=input)
-        logger.debug(f"from rasa msg is {resp}")
+            sender_id=conversation_id, message=result['answer'])
+        # resp = rasa_client.send_message(
+            # sender_id=conversation_id, message=input)
+        logger.info("收到RASA响应", extra={
+            "response": resp,
+            "status": "success" if resp and resp[0]['text'] else "empty"
+        })
         msg = resp[0]['text']
         dispatcher.utter_message(text=msg)
         if SELECTION in msg:
