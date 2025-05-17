@@ -8,12 +8,16 @@ from tools.const import SELECTION
 from tools.decorators import log_execution_time
 from .sys_logger import logger
 import re
-import json
+
+# 初始化日志记录器
 
 class ActionMainItem(Action):
     """处理业务主项和追问问题的动作类"""
 
-    # ... (保留原有代码不变)
+    # 正则表达式模式
+    BUSINESS_ITEM_PATTERN = r'“业务主项”：(.*?)(，|$)'
+    FOLLOW_UP_PATTERN = r'“追问问题”：(.*?)(，|$)'
+
     def name(self) -> Text:
         """返回动作名称"""
         return "action_main_item"
@@ -25,48 +29,84 @@ class ActionMainItem(Action):
         tracker: Tracker,
         domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        user_input = tracker.latest_message.get("text")
-        logger.info("收到用户输入", extra={
-            "user_input": user_input,
-            "intent": tracker.latest_message.get("intent", {}).get("name"),
-            "entities": tracker.latest_message.get("entities", [])
-        })
-        
-        try:
-            chatbot_response = main_item_chatbot.chat(user_input)
-            logger.debug("获取chatbot响应", extra={
-                "response": chatbot_response,
-                "duration": chatbot_response.get('duration', 'N/A')
-            })
-            
-            parsed_data = self.parse_response(chatbot_response)
-            logger.info("解析响应数据", extra={
-                "type": parsed_data['type'],
-                "content": parsed_data['content']
-            })
+        """
+        执行主项处理逻辑
 
-            if parsed_data['type'] == 'business_item':
-                return self._handle_business_item(
-                    dispatcher,
-                    tracker.sender_id,
-                    tracker,
-                    parsed_data['content']
-                )
-            elif parsed_data['type'] == 'follow_up':
-                return self._handle_follow_up(
-                    dispatcher,
-                    parsed_data['content']
-                )
-            else:
-                logger.warning("未知响应类型", extra={
-                    "original_response": chatbot_response
-                })
-                return self._handle_unknown(dispatcher)
-                
-        except Exception as e:
-            logger.error("处理请求时发生异常", exc_info=True)
-            dispatcher.utter_message(text="系统处理出错，请稍后再试")
-            return []
+        Args:
+            dispatcher: 消息调度器
+            tracker: 对话追踪器
+            domain: 对话域定义
+
+        Returns:
+            需要设置的事件列表
+        """
+        user_input = tracker.latest_message.get("text")
+        logger.debug(f"User input: {user_input}")
+        chatbot_response = main_item_chatbot.chat(user_input)
+        logger.debug(
+            f"chatbot response is: {chatbot_response}")
+        parsed_data = self.parse_response(chatbot_response)
+        logger.debug(f"Parsed response from main_item_chatbot: {parsed_data}")
+
+        if parsed_data['type'] == 'business_item':
+            return self._handle_business_item(
+                dispatcher,
+                tracker.sender_id,
+                tracker,
+                parsed_data['content']
+            )
+        elif parsed_data['type'] == 'follow_up':
+            return self._handle_follow_up(
+                dispatcher,
+                parsed_data['content']
+            )
+        elif parsed_data['type'] == 'unknown':
+            return self._handle_unknown(
+                dispatcher,
+            )
+
+        return []
+
+    def parse_response(self, response_data: Dict[Text, Any]) -> Dict[Text, Any]:
+        """
+        解析聊天机器人的响应数据
+
+        Args:
+            response_data: 聊天机器人的原始响应
+
+        Returns:
+            解析后的数据结构:
+            {
+                'type': 'business_item'|'follow_up'|'unknown',
+                'content': str
+            }
+        """
+        answer = response_data.get('answer', '')
+
+        business_item = self._extract_pattern(
+            self.BUSINESS_ITEM_PATTERN, answer)
+        follow_up = self._extract_pattern(self.FOLLOW_UP_PATTERN, answer)
+
+        if business_item and business_item.lower() != '空':
+            return {
+                'type': 'business_item',
+                'content': business_item
+            }
+        elif follow_up and follow_up.lower() != '空':
+            return {
+                'type': 'follow_up',
+                'content': follow_up
+            }
+
+        return {
+            'type': 'unknown',
+            'content': answer
+        }
+
+    def _extract_pattern(self, pattern: str, text: str) -> str:
+        """辅助方法：从文本中提取正则匹配内容"""
+        match = re.search(pattern, text)
+        return match.group(1).strip() if match else None
 
     def _handle_business_item(
         self,
@@ -75,52 +115,57 @@ class ActionMainItem(Action):
         tracker,
         message: str
     ) -> List[Dict[Text, Any]]:
-        logger.info("处理业务主项请求", extra={
-            "business_item": message,
-            "conversation_id": conversation_id
-        })
-        
-        try:
-            resp = rasa_client.send_message(
-                sender_id=conversation_id,
-                message=message
-            )
-            
-            logger.info("收到RASA响应", extra={
-                "response": resp,
-                "status": "success" if resp and resp[0]['text'] else "empty"
-            })
+        """处理业务主项类型的响应"""
+        logger.debug(f"Sending business item to RASA: {message}")
 
-            msg = resp[0]['text']
-            if not msg:
-                logger.warning("RASA返回空响应")
-                dispatcher.utter_message(text="系统查询超时，请转人工服务")
-                return []
-                
-            dispatcher.utter_message(text=msg)
-            
-            if SELECTION in msg:
-                follow_up = tracker.get_slot("follow_up")
-                logger.debug("检测到需要追问的问题", extra={
-                    "follow_up_question": msg,
-                    "existing_follow_up": follow_up is not None
-                })
-                
-                if follow_up is None:
-                    return [
-                        SlotSet("follow_up", msg),
-                        ActiveLoop("follow_up_form")
-                    ]
-                else:
-                    return [
-                        SlotSet("follow_up", msg),
-                        SlotSet("answer", None),
-                        ActiveLoop("follow_up_form")
-                    ]
-                    
+        resp = rasa_client.send_message(
+            sender_id=conversation_id,
+            message=message
+        )
+        logger.debug(f"Response from RASA: {resp}")
+
+        msg = resp[0]['text']
+        if not msg:
+            dispatcher.utter_message(text="系统查询超时，请转人工服务")
             return []
-            
-        except Exception as e:
-            logger.error("处理业务主项时出错", exc_info=True)
-            dispatcher.utter_message(text="处理业务请求时出错")
-            return []
+        dispatcher.utter_message(text=msg)
+        # str = "/ask_service_details{\"main_item\":\""+msg+"\"}"
+        # dispatcher.utter_message(text=str)
+        
+
+        if SELECTION in msg:
+            follow_up = tracker.get_slot("follow_up")
+            if follow_up is None:
+                return [
+                    SlotSet("follow_up", msg),
+                    ActiveLoop("follow_up_form")
+                ]
+            else:
+                return [
+                    SlotSet("follow_up", msg),
+                    SlotSet("answer", None),
+                    ActiveLoop("follow_up_form")
+                ]
+        return []
+
+    def _handle_follow_up(
+        self,
+        dispatcher: CollectingDispatcher,
+        message: str
+    ) -> List[Dict[Text, Any]]:
+        """处理追问问题类型的响应"""
+        logger.debug(f"Handling follow up: {message}")
+        dispatcher.utter_message(text=message)
+        return [
+            SlotSet("follow_up", message),
+            ActiveLoop("follow_up_form")
+        ]
+
+    def _handle_unknown(
+        self,
+        dispatcher: CollectingDispatcher,
+
+    ) -> List[Dict[Text, Any]]:
+        """处理追问问题类型的响应"""
+        dispatcher.utter_message(response="utter_main_item_unknown")
+        return []
