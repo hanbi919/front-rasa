@@ -27,8 +27,9 @@ rules:
 - rule: 初级回退
   steps:
     - intent: nlu_fallback
-    - action: utter_fallback
-    - action: action_listen 
+    - action: action_main_item
+    # - action: utter_fallback
+    # - action: action_listen 
 
 - rule: 查询主项
   steps:

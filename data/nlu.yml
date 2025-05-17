@@ -81,6 +81,7 @@ nlu:
     - 几点到几点之间受理
     - 时间限制是多少
     - 什么时候上班啊
+    - 什么时间能办理
 
 - intent: ask_condition
   examples: |
@@ -160,11 +161,13 @@ nlu:
     - 免不免费
     - 有无手续费
     - 收钱不
+    - 花钱不
     - 要付钱吗
     - 是否无偿
     - 是否要交钱
     - [社保卡](business)收钱不
     - [身份证](business)要钱吗
+    - 花不花钱
 
 - intent: ask_contact_method  
   examples: |
@@ -191,6 +194,8 @@ nlu:
     - 联系方式
     - 联系电话多少
     - 联系电话
+    - 咨询电话
+    - 咨询方式
 
 - intent: request_full_info
   examples: |
