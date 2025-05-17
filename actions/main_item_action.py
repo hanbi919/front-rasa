@@ -10,11 +10,13 @@ from .sys_logger import logger
 import re
 import json
 
-
 class ActionMainItem(Action):
     """处理业务主项和追问问题的动作类"""
 
     # ... (保留原有代码不变)
+    def name(self) -> Text:
+        """返回动作名称"""
+        return "action_main_item"
 
     @log_execution_time
     async def run(
@@ -29,14 +31,14 @@ class ActionMainItem(Action):
             "intent": tracker.latest_message.get("intent", {}).get("name"),
             "entities": tracker.latest_message.get("entities", [])
         })
-
+        
         try:
             chatbot_response = main_item_chatbot.chat(user_input)
             logger.debug("获取chatbot响应", extra={
                 "response": chatbot_response,
                 "duration": chatbot_response.get('duration', 'N/A')
             })
-
+            
             parsed_data = self.parse_response(chatbot_response)
             logger.info("解析响应数据", extra={
                 "type": parsed_data['type'],
@@ -60,7 +62,7 @@ class ActionMainItem(Action):
                     "original_response": chatbot_response
                 })
                 return self._handle_unknown(dispatcher)
-
+                
         except Exception as e:
             logger.error("处理请求时发生异常", exc_info=True)
             dispatcher.utter_message(text="系统处理出错，请稍后再试")
@@ -77,13 +79,13 @@ class ActionMainItem(Action):
             "business_item": message,
             "conversation_id": conversation_id
         })
-
+        
         try:
             resp = rasa_client.send_message(
                 sender_id=conversation_id,
                 message=message
             )
-
+            
             logger.info("收到RASA响应", extra={
                 "response": resp,
                 "status": "success" if resp and resp[0]['text'] else "empty"
@@ -94,16 +96,16 @@ class ActionMainItem(Action):
                 logger.warning("RASA返回空响应")
                 dispatcher.utter_message(text="系统查询超时，请转人工服务")
                 return []
-
+                
             dispatcher.utter_message(text=msg)
-
+            
             if SELECTION in msg:
                 follow_up = tracker.get_slot("follow_up")
                 logger.debug("检测到需要追问的问题", extra={
                     "follow_up_question": msg,
                     "existing_follow_up": follow_up is not None
                 })
-
+                
                 if follow_up is None:
                     return [
                         SlotSet("follow_up", msg),
@@ -115,9 +117,9 @@ class ActionMainItem(Action):
                         SlotSet("answer", None),
                         ActiveLoop("follow_up_form")
                     ]
-
+                    
             return []
-
+            
         except Exception as e:
             logger.error("处理业务主项时出错", exc_info=True)
             dispatcher.utter_message(text="处理业务请求时出错")
