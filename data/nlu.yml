@@ -47,6 +47,7 @@ nlu:
     - [社保卡](business)去哪个部门办
     - 都要拿什么材料
     - 危货车年检的办理需要什么材料
+    - 我想办企业出租车运营执照需要什么
  
 - intent: ask_processing_location
   examples: |
@@ -80,7 +81,7 @@ nlu:
     - 几点到几点之间受理
     - 时间限制是多少
     - 什么时候上班啊
-    
+
 - intent: ask_condition
   examples: |
     - 受理条件是啥

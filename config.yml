@@ -47,7 +47,7 @@ pipeline:
   # BILOU_FLAG: False                                                 # 默认true，BILOU标注适合英文长实体，中文短实体易出错
   # tensorboard_log_directory: ./log
   # tensorboard_log_level: epoch                                      # EPOCH 训练过程可视化监控
-  # constrain_similarities: True                                      # 默认false，强制区分200+相似金融意图
+  constrain_similarities: True                                      # 默认false，强制区分200+相似金融意图
   # SPLIT_ENTITIES_BY_COMMA: False                                    # 默认True，中文不用逗号分割实体
   # RENORMALIZE_CONFIDENCES: True                                     # 默认false,当出现多个意图得分接近时启用
   # DROP_SMALL_LAST_BATCH: True   
@@ -57,7 +57,7 @@ pipeline:
   #     - name: LexicalSyntacticFeaturizer
   #   label:
   #     - name: CountVectorsFeaturizer                                    # 默认false， 确保批次一致性
-  epochs: 100                                                       # 训练轮次
+  epochs: 300                                                       # 训练轮次
 - name: FallbackClassifier
   threshold: 0.7  # 意图识别置信度阈值（低于此值触发回退）
   ambiguity_threshold: 0.1  # 可选：最高意图和第二意图的最小差值阈值
