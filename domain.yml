@@ -18,6 +18,7 @@ intents:
   - ask_processing_location
   - inform_main_item
   - restart
+  - ask_condition
 
 actions:
   - utter_first_greeting

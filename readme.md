@@ -37,3 +37,15 @@ http://115.190.98.254/product/llm/chat/d0fn42n292p9imkl908g
  serverUrl="https://localhost:5005/webhooks/rest/webhook
 
  examples/html/index.html
+
+
+ #### proxy
+
+ uvicorn app:app --workers 9 --host 0.0.0.0 --port 5678
+
+#### rasa-api
+ SANIC_WORKERS=5 rasa run --enable-api --cors "*" --debug
+
+#### rasa-action
+export ACTION_SERVER_SANIC_WORKERS=3
+rasa run actions 

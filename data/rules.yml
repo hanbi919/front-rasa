@@ -40,6 +40,11 @@ rules:
     - intent: ask_processing_location
     - action: action_detail
 
+- rule: 查询受理条件
+  steps:
+    - intent: ask_condition
+    - action: action_detail
+
 - rule: 查询办理时间
   steps:
     - intent: ask_processing_time
