@@ -83,6 +83,8 @@ class ChatBot:
 
         self.host = host
         self.port = port
+        self.excption = "服务器出现异常，请转人工服务。"
+        self.timeout = "机器人响应超时，请您重新尝试。"
 
     def chat(self, sender, message) -> dict:
         """Interact with the Rasa webhook API"""
@@ -113,17 +115,17 @@ class ChatBot:
             if isinstance(responses, list) and len(responses) > 0:
                 result = responses[0].get('text', '')
             else:
-                result = "No response from bot"
+                result = self.timeout
 
         except requests.exceptions.RequestException as e:
             raise HTTPException(
                 status_code=500 if not hasattr(
                     e.response, 'status_code') else e.response.status_code,
-                detail=f"Rasa API error: {str(e)}"
+                detail=self.excption
             )
         except Exception as e:
             raise HTTPException(
-                status_code=500, detail=f"Connection error: {str(e)}"
+                status_code=500, detail=self.excption
             )
 
         end_time = time.time()
