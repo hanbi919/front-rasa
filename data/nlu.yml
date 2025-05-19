@@ -48,6 +48,7 @@ nlu:
     - 都要拿什么材料
     - 危货车年检的办理需要什么材料
     - 我想办企业出租车运营执照需要什么
+    - 我要补办税务相关证件去哪办理
  
 - intent: ask_processing_location
   examples: |

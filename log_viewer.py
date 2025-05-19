@@ -1,181 +1,202 @@
 import streamlit as st
-import time
 import json
-from datetime import datetime
-from pathlib import Path
 import re
+import time
+from datetime import datetime
+import os
+from collections import defaultdict
 
-# 页面设置
-st.set_page_config(layout="wide")
-st.title("📊 业务日志智能分析面板")
+# 设置页面标题和布局
+st.set_page_config(page_title="会话日志查看器", layout="wide")
+st.title("会话日志查看程序")
 
-# 样式设置
-st.markdown("""
-<style>
-.log-entry { 
-    padding: 10px; 
-    border-radius: 5px; 
-    margin-bottom: 10px; 
-    font-family: monospace;
-}
-.debug { background-color: #f0f0f0; }
-.info { background-color: #e6f7ff; }
-.warning { background-color: #fff7e6; }
-.error { background-color: #ffebee; }
-.user-input { font-weight: bold; color: #1e88e5; }
-.bot-response { color: #43a047; }
-.rasa-response { color: #6d4c41; }
-.timestamp { color: #757575; font-size: 0.9em; }
-.response-box { 
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 5px;
-    white-space: pre-wrap;
-}
-</style>
-""", unsafe_allow_html=True)
-
+# 日志文件路径
 LOG_FILE = "logs/application.log"
 
+# 日志级别颜色映射
+LEVEL_COLORS = {
+    "DEBUG": "blue",
+    "INFO": "green",
+    "WARNING": "orange",
+    "ERROR": "red",
+    "CRITICAL": "purple"
+}
 
-def parse_log_line(line):
-    """解析单行日志"""
+# 解析单条日志记录
+
+
+def parse_log_entry(entry):
     try:
-        # 示例日志格式：2025-05-17 22:08:49 - actions.sys_logger - DEBUG - User input: 住房公积金汇缴需要什么材料
+        # 尝试解析为JSON
+        return json.loads(entry)
+    except json.JSONDecodeError:
+        # 如果不是标准JSON，尝试解析为文本日志
         match = re.match(
-            r'^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - (\S+) - (\S+) - (.*)$', line.strip())
-        if not match:
-            return None
-
-        timestamp, logger_name, log_level, message = match.groups()
-
-        return {
-            "timestamp": timestamp,
-            "logger": logger_name,
-            "level": log_level,
-            "message": message.strip()
-        }
-    except Exception as e:
-        st.error(f"解析日志行出错: {e}")
+            r'^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})\s+(\w+)\s+(.*)$', entry.strip())
+        if match:
+            return {
+                "timestamp": match.group(1),
+                "level": match.group(2),
+                "message": match.group(3)
+            }
         return None
 
-
-def format_log_entry(log):
-    """格式化日志条目"""
-    if not log:
-        return ""
-
-    # 用户输入特殊处理
-    if "user input:" in log["message"].lower():
-        user_input = re.sub(r'user input:\s*', '',
-                            log["message"], flags=re.IGNORECASE).strip()
-        return f"""
-        <div class="log-entry user-input">
-            <span class="timestamp">{log["timestamp"]}</span> | 
-            <strong>用户咨询</strong>: {user_input}
-        </div>
-        """
-
-    # 机器人响应处理
-    elif "chatbot is:" in log["message"].lower():
-        chatbot_response = re.sub(
-            r'chatbot is:\s*', '', log["message"], flags=re.IGNORECASE).strip()
-        return f"""
-        <div class="log-entry bot-response">
-            <span class="timestamp">{log["timestamp"]}</span> | 
-            <strong>业务分类</strong>: {chatbot_response}
-        </div>
-        """
-
-    # RASA响应处理
-    elif "from rasa msg is" in log["message"].lower():
-        try:
-            # 提取JSON部分
-            json_str = log["message"].split("from rasa msg is")[1].strip()
-            rasa_response = json.loads(json_str)
-
-            if isinstance(rasa_response, list) and rasa_response:
-                response_text = rasa_response[0].get('text', '')
-                # 格式化带列表的响应
-                formatted_text = response_text.replace(
-                    '\n- ', '<br>- ').replace('\n', '<br>')
-
-                return f"""
-                <div class="log-entry rasa-response">
-                    <span class="timestamp">{log["timestamp"]}</span> | 
-                    <strong>系统回复</strong>:
-                    <div class="response-box">{formatted_text}</div>
-                </div>
-                """
-        except Exception as e:
-            st.error(f"解析RASA响应出错: {e}")
-
-    # 默认格式
-    message = log["message"].replace('\n', '<br>')
-    return f"""
-    <div class="log-entry {log["level"].lower()}">
-        <span class="timestamp">{log["timestamp"]}</span> | 
-        {message}
-    </div>
-    """
+# 显示日志条目
 
 
-def display_logs():
-    """读取并显示日志"""
-    try:
-        with open(LOG_FILE, "r", encoding="utf-8") as f:
-            # 只关注actions.sys_logger的日志
-            logs = [parse_log_line(line) for line in f.readlines()
-                    if "actions.sys_logger" in line and parse_log_line(line)]
-    except FileNotFoundError:
-        st.error("日志文件不存在")
-        return []
-    except Exception as e:
-        st.error(f"读取日志文件出错: {e}")
+def display_log_entry(entry):
+    if not entry:
+        return
+
+    # 创建列布局
+    col1, col2 = st.columns([1, 4])
+
+    with col1:
+        # 显示时间戳和日志级别
+        timestamp = entry.get("timestamp", "")
+        level = entry.get("level", "INFO")
+
+        if timestamp:
+            st.text(timestamp)
+
+        if level in LEVEL_COLORS:
+            st.markdown(
+                f"<span style='color:{LEVEL_COLORS[level]}'>[{level}]</span>", unsafe_allow_html=True)
+        else:
+            st.text(f"[{level}]")
+
+    with col2:
+        # 显示消息内容
+        message = entry.get("message", "")
+
+        # 尝试解析消息中的JSON
+        if isinstance(message, str) and ("{" in message or "[" in message):
+            try:
+                json_content = json.loads(message.replace("'", '"'))
+                st.json(json_content)
+                return
+            except:
+                pass
+
+        # 显示普通消息
+        st.text(message)
+
+        # 显示额外字段
+        for key, value in entry.items():
+            if key not in ["timestamp", "level", "message"]:
+                st.text(f"{key}: {value}")
+
+# 读取日志文件内容
+
+
+def read_log_file():
+    if not os.path.exists(LOG_FILE):
         return []
 
-    return logs
+    with open(LOG_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # 分割日志条目
+    log_entries = []
+    current_entry = ""
+
+    for line in content.split("\n"):
+        # 检查是否是新日志条目的开始
+        if line.startswith("{") and current_entry:
+            log_entries.append(current_entry.strip())
+            current_entry = line
+        else:
+            current_entry += "\n" + line
+
+    if current_entry:
+        log_entries.append(current_entry.strip())
+
+    return log_entries
+
+# 将日志分组为会话
 
 
-def group_conversations(logs):
-    """将日志按会话分组"""
-    sessions = []
-    current_session = []
+def group_logs_by_session(log_entries):
+    sessions = defaultdict(list)
+    current_session_id = None
+    session_count = 0
 
-    for log in reversed(logs):  # 从最新开始处理
-        if log and ("user input:" in log["message"].lower()):
-            if current_session:
-                sessions.append(current_session)
-            current_session = [log]
-        elif log:
-            current_session.append(log)
+    for entry in log_entries:
+        parsed = parse_log_entry(entry)
+        if not parsed:
+            continue
 
-    if current_session:
-        sessions.append(current_session)
+        # 检查是否是用户输入
+        if "User input" in str(parsed.get("message", "")):
+            session_count += 1
+            current_session_id = f"会话-{session_count}"
+
+        if current_session_id:
+            sessions[current_session_id].append(parsed)
 
     return sessions
 
+# 主程序逻辑
 
-# 主界面
-st.sidebar.header("日志过滤选项")
-refresh_rate = st.sidebar.slider("刷新频率(秒)", 1, 30, 5)
-max_sessions = st.sidebar.slider("显示最近会话数", 1, 10, 5)
 
-placeholder = st.empty()
+def main():
+    # 添加筛选选项
+    col1, col2 = st.columns(2)
 
-while True:
-    with placeholder.container():
-        logs = display_logs()
-        sessions = group_conversations(logs)
+    with col1:
+        level_filter = st.multiselect(
+            "按日志级别筛选",
+            options=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            default=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        )
 
-        if not sessions:
-            st.warning("没有找到符合条件的日志")
-        else:
-            for i, session in enumerate(sessions[:max_sessions]):
-                with st.expander(f"会话 {i+1} - {session[0]['timestamp']}", expanded=i == 0):
-                    for log in session:
-                        st.markdown(format_log_entry(log),
-                                    unsafe_allow_html=True)
+    with col2:
+        search_term = st.text_input("搜索关键词")
 
-    time.sleep(refresh_rate)
+    # 创建自动刷新区域
+    refresh_placeholder = st.empty()
+
+    # 上次文件修改时间
+    last_modified = 0
+
+    while True:
+        # 检查文件是否被修改
+        current_modified = os.path.getmtime(
+            LOG_FILE) if os.path.exists(LOG_FILE) else 0
+
+        if current_modified > last_modified:
+            last_modified = current_modified
+
+            # 读取日志文件
+            log_entries = read_log_file()
+
+            # 按会话分组
+            sessions = group_logs_by_session(log_entries)
+
+            # 显示会话列表
+            with refresh_placeholder.container():
+                st.subheader(
+                    f"会话日志 (最后更新: {datetime.fromtimestamp(last_modified).strftime('%Y-%m-%d %H:%M:%S')})")
+
+                # 显示会话统计
+                st.sidebar.subheader("会话统计")
+                st.sidebar.text(f"总会话数: {len(sessions)}")
+
+                # 显示每个会话
+                for session_id, session_logs in sessions.items():
+                    with st.expander(f"{session_id} - 共{len(session_logs)}条日志"):
+                        for entry in session_logs:
+                            # 应用筛选
+                            if entry.get("level", "INFO") in level_filter and \
+                               (not search_term or search_term.lower() in str(entry).lower()):
+                                display_log_entry(entry)
+
+        # 等待10秒
+        time.sleep(10)
+
+
+if __name__ == "__main__":
+    if os.path.exists(LOG_FILE):
+        main()
+    else:
+        st.error(f"日志文件 {LOG_FILE} 不存在，请确保文件路径正确")
