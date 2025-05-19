@@ -6,11 +6,7 @@ from tools.district_agent import district_chatbot
 from tools.call_rasa import rasa_client
 from tools.const import SELECTION
 from tools.decorators import log_execution_time
-import logging
-
-# 初始化日志记录器
-logger = logging.getLogger(__name__)
-
+from .sys_logger import logger
 
 class ActionDetail(Action):
     """处理位置信息查询的动作类"""
