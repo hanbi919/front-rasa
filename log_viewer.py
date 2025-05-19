@@ -21,15 +21,33 @@ LEVEL_COLORS = {
     "CRITICAL": "purple"
 }
 
+
+def parse_timestamp(timestamp_str):
+    """将时间戳字符串转换为datetime对象以便排序"""
+    try:
+        # 处理带毫秒的时间戳格式：2023-01-01 12:00:00,123
+        if "," in timestamp_str:
+            return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
+        # 处理不带毫秒的时间戳格式
+        return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+    except:
+        return datetime.min  # 对于无效时间戳返回最早可能的时间
+
 # 解析单条日志记录
 
 
 def parse_log_entry(entry):
     try:
-        # 尝试解析为JSON
-        return json.loads(entry)
+        log_data = json.loads(entry)
+        # 确保每条日志都有timestamp字段
+        if "timestamp" not in log_data:
+            if "message" in log_data and isinstance(log_data["message"], str):
+                match = re.match(
+                    r'^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})', log_data["message"])
+                if match:
+                    log_data["timestamp"] = match.group(1)
+        return log_data
     except json.JSONDecodeError:
-        # 如果不是标准JSON，尝试解析为文本日志
         match = re.match(
             r'^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})\s+(\w+)\s+(.*)$', entry.strip())
         if match:
@@ -47,11 +65,9 @@ def display_log_entry(entry):
     if not entry:
         return
 
-    # 创建列布局
     col1, col2 = st.columns([1, 4])
 
     with col1:
-        # 显示时间戳和日志级别
         timestamp = entry.get("timestamp", "")
         level = entry.get("level", "INFO")
 
@@ -65,10 +81,8 @@ def display_log_entry(entry):
             st.text(f"[{level}]")
 
     with col2:
-        # 显示消息内容
         message = entry.get("message", "")
 
-        # 尝试解析消息中的JSON
         if isinstance(message, str) and ("{" in message or "[" in message):
             try:
                 json_content = json.loads(message.replace("'", '"'))
@@ -77,10 +91,8 @@ def display_log_entry(entry):
             except:
                 pass
 
-        # 显示普通消息
         st.text(message)
 
-        # 显示额外字段
         for key, value in entry.items():
             if key not in ["timestamp", "level", "message"]:
                 st.text(f"{key}: {value}")
@@ -95,12 +107,10 @@ def read_log_file():
     with open(LOG_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # 分割日志条目
     log_entries = []
     current_entry = ""
 
     for line in content.split("\n"):
-        # 检查是否是新日志条目的开始
         if line.startswith("{") and current_entry:
             log_entries.append(current_entry.strip())
             current_entry = line
@@ -112,39 +122,59 @@ def read_log_file():
 
     return log_entries
 
-# 将日志分组为会话
+# 按会话分组并排序
 
 
-def group_logs_by_session(log_entries):
+def group_and_sort_logs(log_entries):
     sessions = defaultdict(list)
+    session_start_times = {}  # 记录每个会话的开始时间
     current_session_id = None
     session_count = 0
 
+    # 解析所有日志条目并按时间排序
+    parsed_entries = []
     for entry in log_entries:
         parsed = parse_log_entry(entry)
-        if not parsed:
-            continue
+        if parsed:
+            parsed_entries.append(parsed)
 
-        # 检查是否是用户输入
-        if "User input" in str(parsed.get("message", "")):
+    # 按时间戳排序（从旧到新）
+    parsed_entries.sort(key=lambda x: parse_timestamp(x.get("timestamp", "")))
+
+    # 分组并记录会话开始时间
+    for entry in parsed_entries:
+        # 检测新会话开始
+        if "User input" in str(entry.get("message", "")):
             session_count += 1
             current_session_id = f"会话-{session_count}"
+            session_start_times[current_session_id] = parse_timestamp(
+                entry.get("timestamp", ""))
 
         if current_session_id:
-            sessions[current_session_id].append(parsed)
+            sessions[current_session_id].append(entry)
 
-    return sessions
+    # 按会话开始时间排序（最新的在前）
+    sorted_session_ids = sorted(session_start_times.keys(),
+                                key=lambda x: session_start_times[x],
+                                reverse=True)
+
+    # 构建有序的会话字典
+    ordered_sessions = {}
+    for session_id in sorted_session_ids:
+        # 每个会话内的日志按时间顺序排列（从旧到新）
+        sessions[session_id].sort(
+            key=lambda x: parse_timestamp(x.get("timestamp", "")))
+        ordered_sessions[session_id] = sessions[session_id]
+
+    return ordered_sessions
 
 # 主程序逻辑
 
 
 def main():
-    # 添加刷新按钮
     if st.button('刷新日志'):
-        # 使用 st.rerun() 替代已弃用的 experimental_rerun()
         st.rerun()
 
-    # 添加筛选选项
     col1, col2 = st.columns(2)
 
     with col1:
@@ -157,21 +187,17 @@ def main():
     with col2:
         search_term = st.text_input("搜索关键词")
 
-    # 读取日志文件
     log_entries = read_log_file()
 
     if not log_entries:
         st.warning("没有找到日志条目")
         return
 
-    # 按会话分组
-    sessions = group_logs_by_session(log_entries)
+    sessions = group_and_sort_logs(log_entries)
 
-    # 显示会话统计
     st.sidebar.subheader("会话统计")
     st.sidebar.text(f"总会话数: {len(sessions)}")
 
-    # 显示文件最后修改时间
     if os.path.exists(LOG_FILE):
         last_modified = os.path.getmtime(LOG_FILE)
         st.subheader(
@@ -179,11 +205,10 @@ def main():
     else:
         st.subheader("会话日志")
 
-    # 显示每个会话
+    # 显示会话（最新的在前）
     for session_id, session_logs in sessions.items():
-        with st.expander(f"{session_id} - 共{len(session_logs)}条日志"):
+        with st.expander(f"{session_id} - 开始于: {session_logs[0].get('timestamp', '未知时间')} - 共{len(session_logs)}条日志"):
             for entry in session_logs:
-                # 应用筛选
                 if entry.get("level", "INFO") in level_filter and \
                    (not search_term or search_term.lower() in str(entry).lower()):
                     display_log_entry(entry)
