@@ -139,6 +139,11 @@ def group_logs_by_session(log_entries):
 
 
 def main():
+    # 添加刷新按钮
+    if st.button('刷新日志'):
+        # 使用 st.rerun() 替代已弃用的 experimental_rerun()
+        st.rerun()
+
     # 添加筛选选项
     col1, col2 = st.columns(2)
 
