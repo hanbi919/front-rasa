@@ -1,9 +1,8 @@
 import streamlit as st
 import json
 import re
-import time
-from datetime import datetime
 import os
+from datetime import datetime
 from collections import defaultdict
 
 # 设置页面标题和布局
@@ -153,46 +152,36 @@ def main():
     with col2:
         search_term = st.text_input("搜索关键词")
 
-    # 创建自动刷新区域
-    refresh_placeholder = st.empty()
+    # 读取日志文件
+    log_entries = read_log_file()
 
-    # 上次文件修改时间
-    last_modified = 0
+    if not log_entries:
+        st.warning("没有找到日志条目")
+        return
 
-    while True:
-        # 检查文件是否被修改
-        current_modified = os.path.getmtime(
-            LOG_FILE) if os.path.exists(LOG_FILE) else 0
+    # 按会话分组
+    sessions = group_logs_by_session(log_entries)
 
-        if current_modified > last_modified:
-            last_modified = current_modified
+    # 显示会话统计
+    st.sidebar.subheader("会话统计")
+    st.sidebar.text(f"总会话数: {len(sessions)}")
 
-            # 读取日志文件
-            log_entries = read_log_file()
+    # 显示文件最后修改时间
+    if os.path.exists(LOG_FILE):
+        last_modified = os.path.getmtime(LOG_FILE)
+        st.subheader(
+            f"会话日志 (最后更新: {datetime.fromtimestamp(last_modified).strftime('%Y-%m-%d %H:%M:%S')})")
+    else:
+        st.subheader("会话日志")
 
-            # 按会话分组
-            sessions = group_logs_by_session(log_entries)
-
-            # 显示会话列表
-            with refresh_placeholder.container():
-                st.subheader(
-                    f"会话日志 (最后更新: {datetime.fromtimestamp(last_modified).strftime('%Y-%m-%d %H:%M:%S')})")
-
-                # 显示会话统计
-                st.sidebar.subheader("会话统计")
-                st.sidebar.text(f"总会话数: {len(sessions)}")
-
-                # 显示每个会话
-                for session_id, session_logs in sessions.items():
-                    with st.expander(f"{session_id} - 共{len(session_logs)}条日志"):
-                        for entry in session_logs:
-                            # 应用筛选
-                            if entry.get("level", "INFO") in level_filter and \
-                               (not search_term or search_term.lower() in str(entry).lower()):
-                                display_log_entry(entry)
-
-        # 等待10秒
-        time.sleep(10)
+    # 显示每个会话
+    for session_id, session_logs in sessions.items():
+        with st.expander(f"{session_id} - 共{len(session_logs)}条日志"):
+            for entry in session_logs:
+                # 应用筛选
+                if entry.get("level", "INFO") in level_filter and \
+                   (not search_term or search_term.lower() in str(entry).lower()):
+                    display_log_entry(entry)
 
 
 if __name__ == "__main__":
