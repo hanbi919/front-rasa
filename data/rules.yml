@@ -41,6 +41,11 @@ rules:
     - intent: ask_processing_location
     - action: action_detail
 
+- rule: 查询办理地点
+  steps:
+    - intent: ask_material
+    - action: action_detail
+
 - rule: 查询受理条件
   steps:
     - intent: ask_condition
