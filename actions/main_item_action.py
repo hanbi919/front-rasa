@@ -15,7 +15,7 @@ class ActionMainItem(Action):
     """处理业务主项和追问问题的动作类"""
 
     # 正则表达式模式
-    BUSINESS_ITEM_PATTERN = r'“业务主项”：(.*?)(，|$)'
+    BUSINESS_ITEM_PATTERN = r'“业务主项”：(.*?)(?=，“|$)'
     FOLLOW_UP_PATTERN = r'“追问问题”：(.*?)(，|$)'
 
     def name(self) -> Text:

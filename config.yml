@@ -47,7 +47,10 @@ pipeline:
   # BILOU_FLAG: False                                                 # 默认true，BILOU标注适合英文长实体，中文短实体易出错
   # tensorboard_log_directory: ./log
   # tensorboard_log_level: epoch                                      # EPOCH 训练过程可视化监控
-  constrain_similarities: True                                      # 默认false，强制区分200+相似金融意图
+  constrain_similarities: True  
+  hidden_layer_sizes:
+      text: [256, 128] 
+  use_masked_language_model: false                                     # 默认false，强制区分200+相似金融意图
   # SPLIT_ENTITIES_BY_COMMA: False                                    # 默认True，中文不用逗号分割实体
   # RENORMALIZE_CONFIDENCES: True                                     # 默认false,当出现多个意图得分接近时启用
   # DROP_SMALL_LAST_BATCH: True   
