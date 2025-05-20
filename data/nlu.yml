@@ -64,6 +64,9 @@ nlu:
     - 需要去哪里办理
     - 这个业务要到哪办
     - 办理这个要去哪里
+    - 办理地点
+    - 办理地点在哪里
+    - 办理地点在哪儿
     
 - intent: ask_processing_time
   examples: |
