@@ -96,8 +96,8 @@ class ActionLocation(Action):
         # 获取响应消息并发送给用户
         response_message = rasa_response[0]['text']
         # 去掉 -
-        if "-" in response_message:
-            msg = msg.replace("-", " ")
+        if "0431-" in response_message:
+            msg = msg.replace("0431-", "0431 ")
         dispatcher.utter_message(text=response_message)
 
         # 根据响应内容决定返回的事件
