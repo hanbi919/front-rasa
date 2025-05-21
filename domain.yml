@@ -19,8 +19,10 @@ intents:
   - inform_main_item
   - restart
   - ask_condition
+  - provide_location+inform_main_item
 
 actions:
+  - action_handle_multiple_intents
   - utter_first_greeting
   - utter_greet
   # - action_check_first_interaction

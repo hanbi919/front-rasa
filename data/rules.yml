@@ -36,6 +36,13 @@ rules:
     - intent: inform_main_item
     - action: action_main_item
 
+- rule: provide_location+inform_main_item
+  steps:
+    - intent: provide_location+inform_main_item
+    - action: action_handle_multiple_intents
+    # - action: action_main_item
+    # - action: action_provide_location
+
 - rule: 查询办理地点
   steps:
     - intent: ask_processing_location
