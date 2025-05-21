@@ -44,6 +44,8 @@ class ActionDetail(Action):
             "status": "success" if resp and resp[0]['text'] else "empty"
         })
         msg = resp[0]['text']
+        if "0431-" in msg:
+            msg = msg.replace("0431-", "0431 ")
         
         dispatcher.utter_message(text=msg)
         if SELECTION in msg:

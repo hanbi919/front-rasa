@@ -119,6 +119,7 @@ nlu:
     - 前提条件是什么
     - 受理条件是什么
     - 需要什么条件呢
+    - 什么条件能办
 
 - intent: ask_deadline
   examples: |

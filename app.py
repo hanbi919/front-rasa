@@ -1,12 +1,14 @@
+import re
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import redis
+import redis.asyncio as redis  # Changed to async redis
 import requests
 from typing import Optional
 import json
 import hashlib
 import time
+import asyncio
 
 app = FastAPI()
 
@@ -40,7 +42,6 @@ redis_pool = redis.ConnectionPool(
 class ChatRequest(BaseModel):
     question: str
 
-
 # Response model
 
 
@@ -52,7 +53,7 @@ class ChatResponse(BaseModel):
     message: Optional[str] = None
 
 
-def get_redis_connection():
+async def get_redis_connection():
     """Get Redis connection"""
     return redis.Redis(connection_pool=redis_pool)
 
@@ -62,33 +63,29 @@ def generate_cache_key(sender: str, message: str) -> str:
     key_str = f"{sender}:{message}"
     return hashlib.sha256(key_str.encode()).hexdigest()
 
-import re
-# 方法1：使用正则表达式
+
 def extract_user_message(input_str):
     # 匹配模式：用户问题："内容"，用户标识："ID"
-    # 用户问题：“门诊慢特病待遇认定怎么办理”，用户标识：“asdiondk1lsjhuioqwejl112”
     pattern = r'用户问题：“(.+?)”，用户标识：“(.+?)”'
     match = re.search(pattern, input_str)
 
     if match:
-        message = match.group(1)  # 门诊慢特病待遇认定怎么办理
-        user = match.group(2)     # asdiondk1lsjhuioqwejl112
+        message = match.group(1)
+        user = match.group(2)
         return user, message
     else:
         return None, None
 
 
 class ChatBot:
-    def __init__(self,  host: str = "localhost", port: str = "5005"):
-
+    def __init__(self, host: str = "localhost", port: str = "5005"):
         self.host = host
         self.port = port
         self.excption = "服务器出现异常，请转人工服务。"
         self.timeout = "机器人响应超时，请您重新尝试。"
 
-    def chat(self, sender, message) -> dict:
+    async def chat(self, sender, message) -> dict:
         """Interact with the Rasa webhook API"""
-
         result = ""
         headers = {
             'Content-Type': 'application/json',
@@ -101,8 +98,12 @@ class ChatBot:
         print(f"sender is {sender}")
         print(f"message is {message}")
         start_time = time.time()
+
         try:
-            response = requests.post(
+            # Using aiohttp would be better for async HTTP requests
+            # But keeping requests for now with asyncio.to_thread
+            response = await asyncio.to_thread(
+                requests.post,
                 f"http://{self.host}:{self.port}/webhooks/rest/webhook",
                 headers=headers,
                 json=data,
@@ -138,15 +139,15 @@ class ChatBot:
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat_with_bot(request: ChatRequest):
+async def chat_with_bot(request: ChatRequest):
     """Chat endpoint with caching functionality"""
-    redis_conn = get_redis_connection()
+    redis_conn = await get_redis_connection()
     sender, message = extract_user_message(request.question)
     # Generate cache key based on sender and message
     cache_key = generate_cache_key(sender, message)
 
     # Try to get from cache
-    cached_result = redis_conn.get(cache_key)
+    cached_result = await redis_conn.get(cache_key)
     if cached_result is not None:
         cached_data = json.loads(cached_result)
         return ChatResponse(
@@ -160,7 +161,7 @@ def chat_with_bot(request: ChatRequest):
     # If not in cache, call Rasa API
     try:
         bot = ChatBot()
-        result = bot.chat(sender, message)
+        result = await bot.chat(sender, message)
         print(f"return data is {result}")
 
         # Store result in Redis
@@ -168,7 +169,7 @@ def chat_with_bot(request: ChatRequest):
             "answer": result["answer"],
             "duration": result["duration"]
         }
-        redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
+        await redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
 
         return ChatResponse(
             success=True,
@@ -185,7 +186,6 @@ def chat_with_bot(request: ChatRequest):
             from_cache=False,
             message=str(e.detail)
         )
-
 
 if __name__ == "__main__":
     import uvicorn
