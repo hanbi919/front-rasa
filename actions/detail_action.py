@@ -44,8 +44,7 @@ class ActionDetail(Action):
             "status": "success" if resp and resp[0]['text'] else "empty"
         })
         msg = resp[0]['text']
-        if result == "咨询方式":
-            msg = msg.replace("-", " ")
+        
         dispatcher.utter_message(text=msg)
         if SELECTION in msg:
             return [SlotSet("follow_up", msg)]

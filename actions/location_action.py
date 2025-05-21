@@ -8,7 +8,8 @@ from tools.const import SELECTION
 from tools.decorators import log_execution_time
 from .sys_logger import logger
 
-class ActionDetail(Action):
+
+class ActionLocation(Action):
     """处理位置信息查询的动作类"""
 
     def name(self) -> Text:
@@ -94,6 +95,9 @@ class ActionDetail(Action):
 
         # 获取响应消息并发送给用户
         response_message = rasa_response[0]['text']
+        # 去掉 -
+        if "-" in response_message:
+            msg = msg.replace("-", " ")
         dispatcher.utter_message(text=response_message)
 
         # 根据响应内容决定返回的事件
