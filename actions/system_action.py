@@ -9,18 +9,20 @@ from rasa_sdk.events import SlotSet
 from tools.call_rasa import rasa_client
 from rasa_sdk.events import Restarted
 import logging
+
+
 class ActionRestarted(Action):
     def name(self):
         return 'action_session_start'
 
-    def run(self, dispatcher, tracker, domain):
+    async def run(self, dispatcher, tracker, domain):
         # 检查是否由 restart 触发
         if tracker.get_last_event_for("action") == "restart":
             return []
 
         # 正常的 session_start 逻辑
         conversation_id = tracker.sender_id
-        resp = rasa_client.send_message(
+        resp = await rasa_client.send_message_async(
             sender_id=conversation_id, message="/restart")
         dispatcher.utter_message(text="欢迎使用智能客服系统")
 

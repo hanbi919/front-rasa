@@ -17,7 +17,7 @@ class ActionDetail(Action):
         return "action_detail"
 
     @log_execution_time
-    def run(self, dispatcher: CollectingDispatcher,
+    async def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
@@ -36,7 +36,7 @@ class ActionDetail(Action):
             "duration": result.get('duration', 'N/A')
         })
         conversation_id = tracker.sender_id
-        resp = rasa_client.send_message(
+        resp = await rasa_client.send_message_async(
             sender_id=conversation_id, message=result['answer'])
         # resp = rasa_client.send_message(
         # sender_id=conversation_id, message=input)

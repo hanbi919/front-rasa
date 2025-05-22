@@ -49,7 +49,7 @@ class ActionLocation(Action):
             return []
 
         # 发送响应到Rasa并处理结果
-        return self._process_rasa_response(
+        return await self._process_rasa_response(
             dispatcher,
             tracker.sender_id,
             bot_response
@@ -65,7 +65,7 @@ class ActionLocation(Action):
         logger.debug(f"District chatbot response: {response}")
         return response
 
-    def _process_rasa_response(
+    async def _process_rasa_response(
         self,
         dispatcher: CollectingDispatcher,
         conversation_id: str,
@@ -84,7 +84,7 @@ class ActionLocation(Action):
         """
         # 发送到Rasa主服务
         area = bot_response['answer']
-        rasa_response = rasa_client.send_message(
+        rasa_response = await rasa_client.send_message_async(
             sender_id=conversation_id,
             message=area
             # f'/all_area_intent{"area":"{area}"}'

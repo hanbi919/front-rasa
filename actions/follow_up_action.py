@@ -58,7 +58,7 @@ class ActionFollowUp(Action):
 
             # 发送消息到Rasa并获取响应
             conversation_id = tracker.sender_id
-            resp = self._send_to_rasa(conversation_id, data['answer'])
+            resp = await self._send_to_rasa(conversation_id, data['answer'])
             logger.info("收到RASA响应", extra={
                 "response": resp,
                 "status": "success" if resp and resp[0]['text'] else "empty"
@@ -95,10 +95,10 @@ class ActionFollowUp(Action):
         {user_answer}
         """
 
-    def _send_to_rasa(self, sender_id: str, message: str) -> Any:
+    async def _send_to_rasa(self, sender_id: str, message: str) -> Any:
         """发送消息到Rasa服务"""
         try:
-            return rasa_client.send_message(
+            return await rasa_client.send_message_async(
                 sender_id=sender_id,
                 message=message
             )
