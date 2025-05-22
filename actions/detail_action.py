@@ -8,8 +8,9 @@ from tools.call_rasa import rasa_client
 from .sys_logger import logger
 from rasa_sdk.events import SlotSet
 from tools.const import SELECTION
+from rasa_sdk.events import FollowupAction
 
- 
+
 class ActionDetail(Action):
 
     def name(self) -> Text:
@@ -38,15 +39,19 @@ class ActionDetail(Action):
         resp = rasa_client.send_message(
             sender_id=conversation_id, message=result['answer'])
         # resp = rasa_client.send_message(
-            # sender_id=conversation_id, message=input)
+        # sender_id=conversation_id, message=input)
         logger.info("收到RASA响应", extra={
             "response": resp,
             "status": "success" if resp and resp[0]['text'] else "empty"
         })
         msg = resp[0]['text']
+
+        if "未找到业务主项" in msg and len(input) > 10:
+            return [FollowupAction("action_main_item")]
+
         if "0431-" in msg:
             msg = msg.replace("0431-", "0431 ")
-        
+
         dispatcher.utter_message(text=msg)
         if SELECTION in msg:
             return [SlotSet("follow_up", msg)]
