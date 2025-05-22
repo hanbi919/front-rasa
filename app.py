@@ -2,8 +2,8 @@ import re
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import redis.asyncio as redis
-import aiohttp  # Changed to aiohttp
+import redis.asyncio as redis  # Changed to async redis
+import requests
 from typing import Optional
 import json
 import hashlib
@@ -83,20 +83,9 @@ class ChatBot:
         self.port = port
         self.excption = "服务器出现异常，请转人工服务。"
         self.timeout = "机器人响应超时，请您重新尝试。"
-        self.session = None  # Will hold our aiohttp session
-
-    async def ensure_session(self):
-        """Ensure we have an aiohttp session"""
-        if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession()
-
-    async def close(self):
-        """Close the aiohttp session"""
-        if self.session and not self.session.closed:
-            await self.session.close()
 
     async def chat(self, sender, message) -> dict:
-        """Interact with the Rasa webhook API asynchronously"""
+        """Interact with the Rasa webhook API"""
         result = ""
         headers = {
             'Content-Type': 'application/json',
@@ -111,30 +100,28 @@ class ChatBot:
         start_time = time.time()
 
         try:
-            await self.ensure_session()
-            async with self.session.post(
+            # Using aiohttp would be better for async HTTP requests
+            # But keeping requests for now with asyncio.to_thread
+            response = await asyncio.to_thread(
+                requests.post,
                 f"http://{self.host}:{self.port}/webhooks/rest/webhook",
                 headers=headers,
                 json=data,
-                timeout=aiohttp.ClientTimeout(total=30.0)
-            ) as response:
-                response.raise_for_status()
-
-                # Rasa typically returns a list of messages
-                responses = await response.json()
-                if isinstance(responses, list) and len(responses) > 0:
-                    result = responses[0].get('text', '')
-                else:
-                    result = self.timeout
-
-        except asyncio.TimeoutError:
-            raise HTTPException(
-                status_code=504,
-                detail=self.timeout
+                timeout=30.0
             )
-        except aiohttp.ClientError as e:
+            response.raise_for_status()
+
+            # Rasa typically returns a list of messages
+            responses = response.json()
+            if isinstance(responses, list) and len(responses) > 0:
+                result = responses[0].get('text', '')
+            else:
+                result = self.timeout
+
+        except requests.exceptions.RequestException as e:
             raise HTTPException(
-                status_code=500,
+                status_code=500 if not hasattr(
+                    e.response, 'status_code') else e.response.status_code,
                 detail=self.excption
             )
         except Exception as e:
@@ -172,8 +159,8 @@ async def chat_with_bot(request: ChatRequest):
         )
 
     # If not in cache, call Rasa API
-    bot = ChatBot()
     try:
+        bot = ChatBot()
         result = await bot.chat(sender, message)
         print(f"return data is {result}")
 
@@ -197,17 +184,8 @@ async def chat_with_bot(request: ChatRequest):
             answer="",
             duration="0.00",
             from_cache=False,
-            message=str(e.detail))
-    finally:
-        await bot.close()
-
-
-@ app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    redis_conn=await get_redis_connection()
-    await redis_conn.close()
-
+            message=str(e.detail)
+        )
 
 if __name__ == "__main__":
     import uvicorn
