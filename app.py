@@ -197,16 +197,16 @@ async def chat_with_bot(request: ChatRequest):
             answer="",
             duration="0.00",
             from_cache=False,
-            message=str(e.detail)
+            message=str(e.detail))
     finally:
         await bot.close()
 
 
-            @ app.on_event("shutdown")
-            async def shutdown_event():
-            """Cleanup on shutdown"""
-            redis_conn=await get_redis_connection()
-            await redis_conn.close()
+@ app.on_event("shutdown")
+async def shutdown_event():
+"""Cleanup on shutdown"""
+    redis_conn=await get_redis_connection()
+    await redis_conn.close()
 
 
 if __name__ == "__main__":
