@@ -25,7 +25,7 @@ REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
 REDIS_PASSWORD = None
-REDIS_EXPIRE = 10  # Cache expiration time in seconds
+REDIS_EXPIRE = 20  # Cache expiration time in seconds
 
 # Initialize Redis connection pool
 redis_pool = redis.ConnectionPool(
