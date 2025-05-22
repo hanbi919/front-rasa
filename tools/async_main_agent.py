@@ -1,4 +1,4 @@
-from .hiagent import AsyncChatBot  # 注意这里要导入异步版本
+from .async_higent import AsyncChatBot  # 注意这里要导入异步版本
 
 
 class AsyncMainItemChatBot(AsyncChatBot):
