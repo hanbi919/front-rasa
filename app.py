@@ -204,7 +204,7 @@ async def chat_with_bot(request: ChatRequest):
 
 @ app.on_event("shutdown")
 async def shutdown_event():
-"""Cleanup on shutdown"""
+    """Cleanup on shutdown"""
     redis_conn=await get_redis_connection()
     await redis_conn.close()
 
