@@ -30,7 +30,7 @@ class ActionMainItem(Action):
         logger.debug(f"User input: {user_input}")
 
         # Make synchronous call in a thread
-        async with AsyncMainItemChatBot as chat_bot:
+        async with AsyncMainItemChatBot() as chat_bot:
             chatbot_response = await chat_bot.chat(user_input)
         # chatbot_response = await asyncio.to_thread(main_item_chatbot.chat, user_input)
         logger.debug(f"chatbot response is: {chatbot_response}")
