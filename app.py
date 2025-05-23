@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import redis.asyncio as redis
-import aiohttp  # Changed to aiohttp
+import aiohttp
 from typing import Optional
 import json
 import hashlib
@@ -27,14 +27,18 @@ REDIS_DB = 0
 REDIS_PASSWORD = None
 REDIS_EXPIRE = 20  # Cache expiration time in seconds
 
-# Initialize Redis connection pool
+# Initialize Redis connection pool as a global singleton
 redis_pool = redis.ConnectionPool(
     host=REDIS_HOST,
     port=REDIS_PORT,
     db=REDIS_DB,
     password=REDIS_PASSWORD,
-    decode_responses=True
+    decode_responses=True,
+    max_connections=100
 )
+
+# Initialize aiohttp ClientSession as a global singleton
+aiohttp_session = None
 
 # Request models
 
@@ -54,7 +58,7 @@ class ChatResponse(BaseModel):
 
 
 async def get_redis_connection():
-    """Get Redis connection"""
+    """Get Redis connection from the global pool"""
     return redis.Redis(connection_pool=redis_pool)
 
 
@@ -66,7 +70,7 @@ def generate_cache_key(sender: str, message: str) -> str:
 
 def extract_user_message(input_str):
     # 匹配模式：用户问题："内容"，用户标识："ID"
-    pattern = r'用户问题：“(.+?)”，用户标识：“(.+?)”'
+    pattern = r'用户问题："(.+?)"，用户标识："(.+?)"'
     match = re.search(pattern, input_str)
 
     if match:
@@ -78,16 +82,12 @@ def extract_user_message(input_str):
 
 
 class ChatBot:
-    def __init__(self, host: str = "localhost", port: str = "5005"):
+    def __init__(self, session: aiohttp.ClientSession, host: str = "localhost", port: str = "5005"):
         self.host = host
         self.port = port
-        self.excption = "服务器出现异常，请转人工服务。"
+        self.session = session  # Use the shared session
+        self.exception = "服务器出现异常，请转人工服务。"
         self.timeout = "机器人响应超时，请您重新尝试。"
-        self.session = aiohttp.ClientSession()  # Create a session on initialization
-
-    async def close(self):
-        """Close the aiohttp session"""
-        await self.session.close()
 
     async def chat(self, sender, message) -> dict:
         """Interact with the Rasa webhook API asynchronously"""
@@ -129,13 +129,13 @@ class ChatBot:
             print(f"Client error: {str(e)}")
             raise HTTPException(
                 status_code=500,
-                detail=self.excption
+                detail=self.exception
             )
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
             raise HTTPException(
                 status_code=500,
-                detail=self.excption
+                detail=self.exception
             )
 
         end_time = time.time()
@@ -147,11 +147,33 @@ class ChatBot:
         }
 
 
+# Initialize global ChatBot instance
+chat_bot = None
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize shared resources on startup"""
+    global aiohttp_session, chat_bot
+    aiohttp_session = aiohttp.ClientSession()
+    chat_bot = ChatBot(aiohttp_session)
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest):
     """Chat endpoint with caching functionality"""
     redis_conn = await get_redis_connection()
     sender, message = extract_user_message(request.question)
+
+    if sender is None or message is None:
+        return ChatResponse(
+            success=False,
+            answer="",
+            duration="0.00",
+            from_cache=False,
+            message="Invalid message format"
+        )
+
     # Generate cache key based on sender and message
     cache_key = generate_cache_key(sender, message)
 
@@ -167,10 +189,9 @@ async def chat_with_bot(request: ChatRequest):
             message="Result retrieved from cache"
         )
 
-    # If not in cache, call Rasa API
-    bot = ChatBot()
+    # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        result = await bot.chat(sender, message)
+        result = await chat_bot.chat(sender, message)
         print(f"return data is {result}")
 
         # Store result in Redis
@@ -194,15 +215,16 @@ async def chat_with_bot(request: ChatRequest):
             duration="0.00",
             from_cache=False,
             message=str(e.detail))
-    finally:
-        await bot.close()
 
 
-@ app.on_event("shutdown")
+@app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    redis_conn=await get_redis_connection()
+    global aiohttp_session
+    redis_conn = await get_redis_connection()
     await redis_conn.close()
+    if aiohttp_session:
+        await aiohttp_session.close()
 
 
 if __name__ == "__main__":
