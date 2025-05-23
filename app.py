@@ -1,4 +1,5 @@
 import re
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -10,7 +11,48 @@ import hashlib
 import time
 import asyncio
 
-app = FastAPI()
+# Redis configuration
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+REDIS_DB = 0
+REDIS_PASSWORD = None
+REDIS_EXPIRE = 20  # Cache expiration time in seconds
+
+# Global variables to hold shared resources
+redis_pool = None
+aiohttp_session = None
+chat_bot = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan handler for managing shared resources"""
+    global redis_pool, aiohttp_session, chat_bot
+
+    # Initialize Redis connection pool
+    redis_pool = redis.ConnectionPool(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        db=REDIS_DB,
+        password=REDIS_PASSWORD,
+        decode_responses=True,
+        max_connections=100
+    )
+
+    # Initialize aiohttp session
+    aiohttp_session = aiohttp.ClientSession()
+    chat_bot = ChatBot(aiohttp_session)
+
+    yield  # Yield control to the application
+
+    # Cleanup on shutdown
+    if aiohttp_session:
+        await aiohttp_session.close()
+    if redis_pool:
+        redis_conn = redis.Redis(connection_pool=redis_pool)
+        await redis_conn.close()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,26 +61,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Redis configuration
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-REDIS_DB = 0
-REDIS_PASSWORD = None
-REDIS_EXPIRE = 20  # Cache expiration time in seconds
-
-# Initialize Redis connection pool as a global singleton
-redis_pool = redis.ConnectionPool(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    db=REDIS_DB,
-    password=REDIS_PASSWORD,
-    decode_responses=True,
-    max_connections=100
-)
-
-# Initialize aiohttp ClientSession as a global singleton
-aiohttp_session = None
 
 # Request models
 
@@ -70,7 +92,7 @@ def generate_cache_key(sender: str, message: str) -> str:
 
 def extract_user_message(input_str):
     # 匹配模式：用户问题："内容"，用户标识："ID"
-    pattern = r'用户问题："(.+?)"，用户标识："(.+?)"'
+    pattern = r'用户问题：“(.+?)”，用户标识：“(.+?)”'
     match = re.search(pattern, input_str)
 
     if match:
@@ -147,18 +169,6 @@ class ChatBot:
         }
 
 
-# Initialize global ChatBot instance
-chat_bot = None
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize shared resources on startup"""
-    global aiohttp_session, chat_bot
-    aiohttp_session = aiohttp.ClientSession()
-    chat_bot = ChatBot(aiohttp_session)
-
-
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest):
     """Chat endpoint with caching functionality"""
@@ -215,17 +225,6 @@ async def chat_with_bot(request: ChatRequest):
             duration="0.00",
             from_cache=False,
             message=str(e.detail))
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    global aiohttp_session
-    redis_conn = await get_redis_connection()
-    await redis_conn.close()
-    if aiohttp_session:
-        await aiohttp_session.close()
-
 
 if __name__ == "__main__":
     import uvicorn
