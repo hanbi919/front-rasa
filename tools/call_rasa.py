@@ -16,7 +16,7 @@ class RasaChatClient:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, server_url: str = "http://116.141.0.116:5005"):
+    def __init__(self, server_url: str = "http://192.168.213.65:5005"):
         if not hasattr(self, '_initialized'):
             self.server_url = server_url.rstrip('/')
             self.endpoint = "/webhooks/rest/webhook"
