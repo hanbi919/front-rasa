@@ -110,6 +110,7 @@ class ChatBot:
         self.session = session  # Use the shared session
         self.exception = "服务器出现异常，请转人工服务。"
         self.timeout = "机器人响应超时，请您重新尝试。"
+        self.data_error = "数据返回错误，请联系系统管理员。"
 
     async def chat(self, sender, message) -> dict:
         """Interact with the Rasa webhook API asynchronously"""
