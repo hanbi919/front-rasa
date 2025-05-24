@@ -49,3 +49,37 @@ http://115.190.98.254/product/llm/chat/d0fn42n292p9imkl908g
 #### rasa-action
 export ACTION_SERVER_SANIC_WORKERS=8
 rasa run actions 
+
+#### neo4j
+
+docker run --name neo4j \
+  -p 7474:7474 -p 7687:7687 \
+  -v neo4j_data:/data \
+  -v neo4j_logs:/logs \
+  -v neo4j_import:/var/lib/neo4j/import \
+  --env NEO4J_AUTH=neo4j/password \
+  --env NEO4J_dbms_connector_bolt_thread__pool__min__size=20 \
+  --env NEO4J_dbms_connector_bolt_thread__pool__max__size=50 \
+  --env NEO4J_dbms_memory_heap_initial__size=4G \
+  --env NEO4J_dbms_memory_heap_max__size=8G \
+  --env NEO4J_dbms_memory_pagecache_size=8G \
+  --restart unless-stopped \
+  --memory 16g \
+  --cpus 8 \
+  -d neo4j:latest
+
+
+
+  uvicorn app:app --workers 12 --host 0.0.0.0 --port 5678 --limit-concurrency 1000 --timeout-keep-alive 30
+
+
+
+  pattern = r'用户问题："(.+?)"，用户标识："(.+?)"'
+
+
+  gunicorn -k uvicorn.workers.UvicornWorker \
+  -w 4 \
+  -b :5005 \
+  --timeout 120 \
+  rasa.__main__:app
+    

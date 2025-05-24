@@ -47,13 +47,17 @@ class RasaChatClient:
             "sender": sender_id if sender_id else self._generate_sender_id(),
             "message": message
         }
+        headers = {
+            **self.default_headers,
+            "X-Sender-ID": payload["sender"]  # 添加 X-Sender-ID 头，值与 sender 相同
+        }
 
         try:
             url = f"{self.server_url}{self.endpoint}"
             async with self._session.post(
                 url,
                 json=payload,
-                headers=self.default_headers,
+                headers=headers,
                 timeout=aiohttp.ClientTimeout(total=timeout)
             ) as response:
                 response.raise_for_status()
