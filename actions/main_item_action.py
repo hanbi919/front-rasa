@@ -33,7 +33,7 @@ class ActionMainItem(Action):
         async with AsyncMainItemChatBot() as chat_bot:
             chatbot_response = await chat_bot.chat(user_input)
         # chatbot_response = await asyncio.to_thread(main_item_chatbot.chat, user_input)
-        """logger.debug(f"chatbot response is: {chatbot_response}")
+        logger.debug(f"chatbot response is: {chatbot_response}")
 
         parsed_data = self.parse_response(chatbot_response)
         logger.debug(f"Parsed response from main_item_chatbot: {parsed_data}")
@@ -54,7 +54,7 @@ class ActionMainItem(Action):
             )
         elif parsed_data['type'] == 'unknown':
             # Await the coroutine here
-            return await self._handle_unknown(dispatcher)"""
+            return await self._handle_unknown(dispatcher)
 
         return []
 
