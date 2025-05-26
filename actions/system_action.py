@@ -2,7 +2,7 @@ from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from tools.main_agent import main_item_chatbot
+# from tools.main_agent import main_item_chatbot
 import json
 import re
 from rasa_sdk.events import SlotSet

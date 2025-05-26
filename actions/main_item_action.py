@@ -3,7 +3,8 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet, ActiveLoop
 # from tools.async_main_agent import AsyncMainItemChatBot
-from tools.main_agent import main_item_chatbot
+# from tools.main_agent import main_item_chatbot
+from tools.main_agent_pool import get_global_pool
 from tools.call_rasa import rasa_client
 from tools.const import SELECTION
 from tools.decorators import log_execution_time
@@ -29,12 +30,14 @@ class ActionMainItem(Action):
     ) -> List[Dict[Text, Any]]:
         user_input = tracker.latest_message.get("text")
         logger.debug(f"User input: {user_input}")
+        pool = get_global_pool()
 
         # Make synchronous call in a thread
         # async with AsyncMainItemChatBot() as chat_bot:
         #     chatbot_response = await chat_bot.chat(user_input)
         # chatbot_response = await asyncio.to_thread(main_item_chatbot.chat, user_input)
-        chatbot_response = main_item_chatbot.chat(user_input)
+        with pool.get_instance() as bot:
+            chatbot_response = bot.chat(user_input)
         logger.debug(f"chatbot response is: {chatbot_response}")
 
         parsed_data = self.parse_response(chatbot_response)

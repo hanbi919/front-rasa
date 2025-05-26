@@ -11,4 +11,4 @@ class Main_Item_ChatBot(ChatBot):
 
 # 一级事项匹配机器人
 # 可以在这里创建一个默认实例以便其他模块直接使用
-main_item_chatbot = Main_Item_ChatBot()
+# main_item_chatbot = Main_Item_ChatBot()
