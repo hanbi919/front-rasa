@@ -4,7 +4,8 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet, ActiveLoop
 # from tools.async_main_agent import AsyncMainItemChatBot
 # from tools.main_agent import main_item_chatbot
-from tools.main_agent_pool import get_global_pool
+# from tools.main_item_deepseek import DifyAgentStreamClient
+from tools.main_agent_pool_ds import get_global_pool
 from tools.call_rasa import rasa_client
 from tools.const import SELECTION
 from tools.decorators import log_execution_time
@@ -41,6 +42,7 @@ class ActionMainItem(Action):
         logger.debug(f"chatbot response is: {chatbot_response}")
 
         parsed_data = self.parse_response(chatbot_response)
+        # parsed_data = self.parse_response(chatbot_response)
         logger.debug(f"Parsed response from main_item_chatbot: {parsed_data}")
 
         if parsed_data['type'] == 'business_item':
