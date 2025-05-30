@@ -29,7 +29,10 @@ class ActionFollowUp(Action):
             user_answer = tracker.latest_message.get("text")
             answer = tracker.get_slot("answer")
             follow_up = tracker.get_slot("follow_up")
-
+            if not follow_up:
+                logger.warning("follow up is None")
+                dispatcher.utter_message(text="请说出您想要办理的业务")
+                return []
             logger.info("开始处理追问请求", extra={
                 "user_answer": user_answer,
                 "previous_answer": answer,
@@ -51,7 +54,7 @@ class ActionFollowUp(Action):
                 "duration": data.get('duration', 'N/A')
             })
 
-            if "无匹配选项" in data['answer']:
+            if "无法识别" in data['answer']:
                 logger.warning("追问无匹配选项")
                 dispatcher.utter_message(response="utter_follow_up_no_match")
                 return []
