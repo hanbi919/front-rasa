@@ -1,4 +1,5 @@
-# 识别业务主项的智能体
+# 用户地址识别机器人
+
 from .hiagent import ChatBot
 
 
@@ -6,7 +7,8 @@ class District_ChatBot(ChatBot):
     def __init__(self):
         # 第一个工具的配置参数
         super().__init__(
-            api_key="d09fdaf292p9imkl67c0",
+            api_key="d0racpaf9ns5f38uni70",
+            # api_key="d09fdaf292p9imkl67c0",
         )
 
     def check_error(self, answer):

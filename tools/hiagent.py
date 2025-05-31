@@ -18,8 +18,10 @@ class ChatBot:
         '''
         self.user_id = "admin123"
         self.api_key = api_key
-        self.host = "115.190.98.254"
-        self.port = "80"
+        self.host = "116.141.0.87"
+        # self.host = "115.190.98.254"
+        self.port = "32300"
+        # self.port = "80"
         # 在初始化时创建一个新的对话
         self.conversation_id = self.create_conversation()
 

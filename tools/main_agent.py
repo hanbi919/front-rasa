@@ -6,7 +6,8 @@ class Main_Item_ChatBot(ChatBot):
     def __init__(self):
         # 第一个工具的配置参数
         super().__init__(
-            api_key="d090t37292p9imkl63j0",
+            api_key="d0rabvgvfjfv26hqvk3g",
+            # api_key="d090t37292p9imkl63j0",
         )
 
 # 一级事项匹配机器人
