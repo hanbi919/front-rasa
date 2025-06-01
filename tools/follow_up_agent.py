@@ -6,7 +6,9 @@ class Follow_up_ChatBot(ChatBot):
     def __init__(self):
         # 第一个工具的配置参数
         super().__init__(
-            api_key="d0racpaf9ns5f38uni70",
+            api_key="d0trr70vfjfv26hr22t0",
+            # api_key="d0racpaf9ns5f38uni70",
+            
             # api_key="d09c9r8a8cgtr0h4nqvg",
         )
 
