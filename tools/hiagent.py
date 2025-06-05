@@ -51,7 +51,7 @@ class ChatBot:
         data = {
             'Query': query,
             'AppConversationID': self.conversation_id,
-            'ResponseMode': 'streaming',
+            'ResponseMode': 'streaming',  # Blocking
             'UserID': self.user_id,
         }
         # print(data)
