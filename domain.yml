@@ -20,6 +20,7 @@ intents:
   - restart
   - ask_condition
   - provide_location+inform_main_item
+  - request_base_info
 
 actions:
   - action_handle_multiple_intents
@@ -32,6 +33,7 @@ actions:
   - action_follow_up
   - action_provide_location
   - action_restart
+  - action_base_info
   # - action_restarted
 entities:
   - business
