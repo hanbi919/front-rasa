@@ -101,6 +101,11 @@ rules:
     - intent: select_option
     - action: action_follow_up
 
+- rule: 查询区级政务中心信息
+  steps:
+    - intent: request_base_info
+    - action: action_base_info
+
 # - rule: Activate form
 #   steps:
 #   - intent: provide_location

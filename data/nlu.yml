@@ -122,6 +122,7 @@ nlu:
     - 什么条件能办
     - 办这个证有什么要求吗
     - 有什么条件吗
+    - 需要什么条件
 
 - intent: ask_deadline
   examples: |
@@ -275,28 +276,15 @@ nlu:
     - 请提供未删节的版本
     - 我要完整的报告内容
 
-- intent: select_option
+- intent: request_base_info
   examples: |
-    - 一
-    - 二
-    - 1
-    - 2
-    - 选择二
-    - 我选三
-    - 选择2
-    - 我选3
-    - 第四个
-    - 选项4
-    - 数字1
-    - 第2个
-    - 选第三项
-    - 我要5号
-    - 选择选项6
-    - 第7个选项
-    - 选8
-    - 9号
-    - 选择第十个
-    - 第11项
+    - 高新区政务服务中心电话
+    - 南关区地址
+    - 二道区电话和地址多少
+    - 绿园区呢
+    - 朝阳区是多少
+    - 朝阳政务中心
+
     
 - intent: restart
   examples: |
@@ -342,3 +330,67 @@ nlu:
     - 榆树市
     - 德惠市
     - 公主岭市
+    - 二道
+    - 九台
+    - 经开
+- synonym: "经济技术开发区"
+  examples: |
+    - "经开区"
+    - "经开"
+- synonym: "净月高新技术产业开发区"
+  examples: |
+    - "净月区"
+    - "净月"
+- synonym: "汽车经济技术开发区"
+  examples: |
+    - "汽开区"
+    - "汽开"
+- synonym: "高新技术产业开发区"
+  examples: |
+    - "高新区"
+    - "高新"
+- synonym: "中韩（长春）国际合作示范区"
+  examples: |
+    - "中韩"
+- synonym: "莲花山生态旅游度假区"
+  examples: |
+    - "莲花山"
+- synonym: "二道区"
+  examples: |
+    - "二道"
+- synonym: "双阳区"
+  examples: |
+    - "双阳"
+- synonym: "九台区"
+  examples: |
+    - "九台"
+- synonym: "榆树市"
+  examples: |
+    - "榆树"    
+- synonym: "德惠市"
+  examples: |
+    - "德惠"
+
+
+- intent: select_option
+  examples: |
+    - 一
+    - 二
+    - 1
+    - 2
+    - 选择二
+    - 我选三
+    - 选择2
+    - 我选3
+    - 第四个
+    - 选项4
+    - 数字1
+    - 第2个
+    - 选第三项
+    - 我要5号
+    - 选择选项6
+    - 第7个选项
+    - 选8
+    - 9号
+    - 选择第十个
+    - 第11项
