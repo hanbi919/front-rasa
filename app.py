@@ -266,6 +266,7 @@ async def chat_with_agent(request: ChatRequest):
         api_key = "d13qbg2f9ns5f38uuac0"
 
         # 使用异步上下文管理器
+        area=""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
             # 第一次聊天
             if "&" in sender:
