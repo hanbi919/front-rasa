@@ -51,7 +51,7 @@ class AsyncChatBot:
         """异步上下文管理器退出"""
         await self.session.close()
         if self.redis_client:
-            await self.redis_client.aclose()
+            await self.redis_client.close()
 
     async def get_or_create_conversation(self) -> str:
         '''
