@@ -10,6 +10,7 @@ import json
 import hashlib
 import time
 import asyncio
+from tools.async_higent import AsyncChatBot
 
 # Redis configuration
 REDIS_HOST = "localhost"
@@ -203,6 +204,70 @@ async def chat_with_bot(request: ChatRequest):
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
         result = await chat_bot.chat(sender, message)
+        print(f"return data is {result}")
+
+        # Store result in Redis
+        cache_data = {
+            "answer": result["answer"],
+            "duration": result["duration"]
+        }
+        await redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
+
+        return ChatResponse(
+            success=True,
+            answer=result["answer"],
+            duration=result["duration"],
+            from_cache=False,
+            message="Result retrieved from Rasa API and cached"
+        )
+    except HTTPException as e:
+        return ChatResponse(
+            success=False,
+            answer="",
+            duration="0.00",
+            from_cache=False,
+            message=str(e.detail))
+    
+# 查询各个大厅的地址，电话，上班时间等
+@app.post("/agent", response_model=ChatResponse)
+async def chat_with_agent(request: ChatRequest):
+    """Chat endpoint with caching functionality"""
+    redis_conn = await get_redis_connection()
+    sender, message = extract_user_message(request.question)
+
+    if sender is None or message is None:
+        return ChatResponse(
+            success=False,
+            answer="",
+            duration="0.00",
+            from_cache=False,
+            message="Invalid message format"
+        )
+
+    # Generate cache key based on sender and message
+    cache_key = generate_cache_key(sender, message)
+
+    # Try to get from cache
+    cached_result = await redis_conn.get(cache_key)
+    if cached_result is not None:
+        cached_data = json.loads(cached_result)
+        return ChatResponse(
+            success=True,
+            answer=cached_data["answer"],
+            duration=cached_data["duration"],
+            from_cache=True,
+            message="Result retrieved from cache"
+        )
+
+    # If not in cache, call Rasa API using the global ChatBot instance
+    try:
+        api_key = "d13qbg2f9ns5f38uuac0"
+
+        # 使用异步上下文管理器
+        async with AsyncChatBot(api_key,"admin") as chat_bot:
+            # 第一次聊天
+            result = await chat_bot.chat(message)
+        # result = await chat_bot.chat(sender, message)
         print(f"return data is {result}")
 
         # Store result in Redis

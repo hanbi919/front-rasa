@@ -6,16 +6,16 @@ from typing import Dict, Any
 
 
 class AsyncChatBot:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, user_id="admin"):
         '''
         初始化 AsyncChatBot 类的实例。
         参数：
         - api_key (str): API 密钥。
         '''
-        self.user_id = "admin123"
+        self.user_id = user_id
         self.api_key = api_key
-        self.host = "115.190.98.254"
-        self.port = "80"
+        self.host = "116.141.0.87" 
+        self.port = "32300"
         self.session = None  # aiohttp 会话
         self.conversation_id = None  # 会在初始化时设置
 
@@ -104,17 +104,17 @@ class AsyncChatBot:
 
 
 async def main():
-    api_key = "d091308a8cgtr0h4npng"
+    api_key = "d13qbg2f9ns5f38uuac0"
 
     # 使用异步上下文管理器
     async with AsyncChatBot(api_key) as chat_bot:
         # 第一次聊天
-        result1 = await chat_bot.chat("我想办理残疾证业务，咋办啊")
+        result1 = await chat_bot.chat("朝阳区税务分中心地址是哪儿啊")
         print("第一次结果:", result1)
 
-        # 第二次聊天
-        result2 = await chat_bot.chat("我想去哪里可以办呢")
-        print("第二次结果:", result2)
+        # # 第二次聊天
+        # result2 = await chat_bot.chat("我想去哪里可以办呢")
+        # print("第二次结果:", result2)
 
 if __name__ == "__main__":
     asyncio.run(main())

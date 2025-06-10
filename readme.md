@@ -1,85 +1,46 @@
-### agent type
-<!-- 事项匹配机器人 -->
-APPKEY：d090ot7292p9imkl634g
-APIKEY：d090t37292p9imkl63j0
+ 
+    - 二道区
+    - 双阳区
+    - 九台区
+    - 榆树市
+    - 德惠市
+    - 净月
 
-<!-- 意图匹配机器人 -->
-APPKEY：d090vj8a8cgtr0h4npjg
-APIKEY：d091308a8cgtr0h4npng
+    这些数据需要缩写的语音输入
 
+目前存在的问题：
 
-### reask
+1. 用户不清楚机器人可以提供哪些服务，不知道机器人服务的边界。（llm识别）
+2. 缺少帮助，用户不知道该如何使用系统
+3. 大部分的都是问服务中心的电话、地址、上班时间的
+4. 通过中继号判断用户的区域
+5. 缺少语音上的矫正 （llm）
+6. 通话记录的存储是否要我们独自保存（私有化联通）
 
-追问问题:
-请问您是要了解哪一项办理主项内容呢?1:住房公积金汇缴 2:租赁自住住房提取住房公积金 3:离休、退休提取住房公积金 4:住房公积金单位缴存登记
-追问回复:
-单位缴存
+业务上的问题：
+1. 新区的数据是独立，现在的知识库没有新区数据（是否可以合并）
+2. 十多个办理项和情形是重复的
+3. 办理地址夸区域的， 中韩是宽城的，汽开区是绿园的（无）
+4. 儿童办理护照（16岁以下）  （后）
 
+解决办法：
+1. 增加对服务中心基本信息的查询功能（higent agent）
+2. 考虑进行电话回访（是否自动语音）（后）
+3. 增加帮助的语音服务（不做）
+4. 通话记录的llm分析，形成report（或者elk分析，chatBI）
+5. 增加一个新的智能体，用于对用户输入语句的矫正（增加了延迟时间）
 
-请问您是要了解哪一项办理主项内容呢？1：排污许可核发 2：排污许可变更 3：排污许可注销
+后续技术方向：
 
+1. rasa pro
+2. mcp的技术支持
+3. dify ,n8n ,ragflow 
+4. suld 910b embeding, rerank, deepseek. 
 
-### 运行main.py
-
-uvicorn main:app --workers 4 --host 0.0.0.0 --port 5678
-
-### 工具列表
-
-1. tools/check.py 用于利用智能体对泛化的内容进行检查
-
-http://115.190.98.254/product/llm/chat/d0fn42n292p9imkl908g
-
-### change chat
- packages/ui/src/index.html 
- server-url ="http://116.141.0.116:5005
-
- git diff examples/react/src/App.tsx
- serverUrl="https://localhost:5005/webhooks/rest/webhook
-
- examples/html/index.html
-
-
- #### proxy
-
- uvicorn app:app --workers 12 --host 0.0.0.0 --port 5678
-
-#### rasa-api
- SANIC_WORKERS=8 rasa run --enable-api --cors "*" --debug
-
-#### rasa-action
-export ACTION_SERVER_SANIC_WORKERS=8
-rasa run actions 
-
-#### neo4j
-
-docker run --name neo4j \
-  -p 7474:7474 -p 7687:7687 \
-  -v neo4j_data:/data \
-  -v neo4j_logs:/logs \
-  -v neo4j_import:/var/lib/neo4j/import \
-  --env NEO4J_AUTH=neo4j/password \
-  --env NEO4J_dbms_connector_bolt_thread__pool__min__size=20 \
-  --env NEO4J_dbms_connector_bolt_thread__pool__max__size=50 \
-  --env NEO4J_dbms_memory_heap_initial__size=4G \
-  --env NEO4J_dbms_memory_heap_max__size=8G \
-  --env NEO4J_dbms_memory_pagecache_size=8G \
-  --restart unless-stopped \
-  --memory 16g \
-  --cpus 8 \
-  -d neo4j:latest
+和呼入电话相关区域相关:
 
 
-
-  uvicorn app:app --workers 12 --host 0.0.0.0 --port 5678 --limit-concurrency 1000 --timeout-keep-alive 30
-
-
-
-  pattern = r'用户问题："(.+?)"，用户标识："(.+?)"'
-
-
-  gunicorn -k uvicorn.workers.UvicornWorker \
-  -w 4 \
-  -b :5005 \
-  --timeout 120 \
-  rasa.__main__:app
-    
+1. 开发智能体，解决用户查询电话，上班时间，办理地点的基础信息
+2. 增加智能体，统一放在rasa前端之前，对用户的意图进行识别。（流程需要讨论）
+3. 增加对网点号码的识别，直接认为用户的区域就是网点号码的区域
+4. 增加10个业务主项识别的智能体，测试智能体的并发量
