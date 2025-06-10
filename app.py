@@ -11,7 +11,7 @@ import hashlib
 import time
 import asyncio
 from tools.async_higent import AsyncChatBot
-
+from tools.const import service_centers
 # Redis configuration
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
@@ -232,6 +232,8 @@ async def chat_with_bot(request: ChatRequest):
 @app.post("/agent", response_model=ChatResponse)
 async def chat_with_agent(request: ChatRequest):
     """Chat endpoint with caching functionality"""
+
+    
     redis_conn = await get_redis_connection()
     sender, message = extract_user_message(request.question)
 
@@ -264,9 +266,13 @@ async def chat_with_agent(request: ChatRequest):
         api_key = "d13qbg2f9ns5f38uuac0"
 
         # 使用异步上下文管理器
-        async with AsyncChatBot(api_key,"admin") as chat_bot:
+        async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
             # 第一次聊天
-            result = await chat_bot.chat(message)
+            if "&" in sender:
+                _area = sender.split("&")[-1]
+                area = service_centers.get(_area, "")
+            data = f"用户问题：“{message}”  用户地址：“{area}”"
+            result = await chat_bot.chat(data)
         # result = await chat_bot.chat(sender, message)
         print(f"return data is {result}")
 
