@@ -12,6 +12,7 @@ import time
 import asyncio
 from tools.async_higent import AsyncChatBot
 from tools.const import service_centers
+from sys_logger import logger
 # Redis configuration
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
@@ -123,9 +124,9 @@ class ChatBot:
             "sender": sender,
             "message": message
         }
-        print(f"data is {data}")
-        print(f"sender is {sender}")
-        print(f"message is {message}")
+        logger.info(f"data is {data}")
+        logger.info(f"sender is {sender}")
+        logger.info(f"message is {message}")
         start_time = time.time()
 
         try:
@@ -150,13 +151,13 @@ class ChatBot:
                 detail=self.timeout
             )
         except aiohttp.ClientError as e:
-            print(f"Client error: {str(e)}")
+            logger.error(f"Client error: {str(e)}")
             raise HTTPException(
                 status_code=500,
                 detail=self.exception
             )
         except Exception as e:
-            print(f"Unexpected error: {str(e)}")
+            logger.error(f"Unexpected error: {str(e)}")
             raise HTTPException(
                 status_code=500,
                 detail=self.exception
@@ -204,7 +205,7 @@ async def chat_with_bot(request: ChatRequest):
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
         result = await chat_bot.chat(sender, message)
-        print(f"return data is {result}")
+        logger.debug(f"return data is {result}")
 
         # Store result in Redis
         cache_data = {
@@ -276,21 +277,21 @@ async def chat_with_agent(request: ChatRequest):
             data = f"用户问题：“{message}”  用户地址：“{area}”"
             result = await chat_bot.chat(data)
         # result = await chat_bot.chat(sender, message)
-        print(f"return data is {result}")
+        logger.debug(f"return data is {result}")
         # 去掉 -
-        answer = result["answer"]
-        if "0431-" in answer:
-            answer = answer.replace("0431-", "0431 ")
+        _answer = result["answer"]
+        if "0431-" in _answer:
+            _answer = _answer.replace("0431-", "0431 ")
         # Store result in Redis
         cache_data = {
-            "answer": answer,
+            "answer": _answer,
             "duration": result["duration"]
         }
         await redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
 
         return ChatResponse(
             success=True,
-            answer=result["answer"],
+            answer=_answer,
             duration=result["duration"],
             from_cache=False,
             message="Result retrieved from Rasa API and cached"
