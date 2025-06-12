@@ -23,7 +23,10 @@ rules:
 #   steps:
 #     - action: action_check_first_interaction
     # - action: utter_greet  # 发送欢迎词
-
+- rule: respond to faq
+  steps:
+    - intent: faq
+    - action: utter_faq
 - rule: 初级回退
   steps:
     - intent: nlu_fallback

@@ -44,3 +44,24 @@
 2. 增加智能体，统一放在rasa前端之前，对用户的意图进行识别。（流程需要讨论）
 3. 增加对网点号码的识别，直接认为用户的区域就是网点号码的区域
 4. 增加10个业务主项识别的智能体，测试智能体的并发量
+
+"neo4j-aura": {
+      "timeout": 60,
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-neo4j-cypher@0.2.1"
+      ],
+      "env": {
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USERNAME": "neo4j",
+        "NEO4J_PASSWORD": "password",
+        "NEO4J_DATABASE": "neo4j"
+      }
+    }
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USERNAME="neo4j"
+export NEO4J_PASSWORD="password"
+export NEO4J_DATABASE="neo4j"
+export UV_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
+uvx "mcp-neo4j-cypher@0.2.1"

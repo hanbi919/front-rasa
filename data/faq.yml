@@ -1,0 +1,18 @@
+version: "3.1"
+
+nlu:
+
+- intent: faq/ask_passport
+  examples: |
+    - 周六周日能不能办港澳通行证
+    - 休息日可以办港澳通行证吗
+
+- intent: faq/ask_get
+  examples: |
+    - 周六周日能取营业执照和公章吗
+    - 休息日能取营业执照和公章吗
+
+- intent: faq/ask_need
+  examples: |
+    - 用不用提前预约啊
+    - 需要提前预约吗
