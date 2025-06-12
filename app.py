@@ -227,13 +227,14 @@ async def chat_with_bot(request: ChatRequest):
             duration="0.00",
             from_cache=False,
             message=str(e.detail))
-    
+
 # 查询各个大厅的地址，电话，上班时间等
+
+
 @app.post("/agent", response_model=ChatResponse)
 async def chat_with_agent(request: ChatRequest):
     """Chat endpoint with caching functionality"""
 
-    
     redis_conn = await get_redis_connection()
     sender, message = extract_user_message(request.question)
 
@@ -266,7 +267,7 @@ async def chat_with_agent(request: ChatRequest):
         api_key = "d13qbg2f9ns5f38uuac0"
 
         # 使用异步上下文管理器
-        area=""
+        area = ""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
             # 第一次聊天
             if "&" in sender:
@@ -276,10 +277,13 @@ async def chat_with_agent(request: ChatRequest):
             result = await chat_bot.chat(data)
         # result = await chat_bot.chat(sender, message)
         print(f"return data is {result}")
-
+        # 去掉 -
+        answer = result["answer"]
+        if "0431-" in answer:
+            answer = answer.replace("0431-", "0431 ")
         # Store result in Redis
         cache_data = {
-            "answer": result["answer"],
+            "answer": answer,
             "duration": result["duration"]
         }
         await redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
