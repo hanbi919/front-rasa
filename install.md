@@ -80,6 +80,19 @@ rasa-api: 1 windows (created Fri May 23 12:08:39 2025)
 streamlit: 1 windows (created Mon May 19 10:03:15 2025)
 web: 1 windows (created Thu May 15 13:27:08 2025)
 ```
+
+#### run proxy
 ```
 uvicorn app:app --workers 12 --host 0.0.0.0 --port 5678 --limit-concurrency 1000 --timeout-keep-alive 30
 ```
+
+#### run action
+
+export ACTION_SERVER_SANIC_WORKERS=12
+rasa run  actions --debug 
+
+#### run api
+SANIC_WORKERS=8 SANIC_ACCESS_LOG=false SANIC_REQUEST_MAX_SIZE=100000000 SANIC_REQUEST_TIMEOUT=120 rasa run   --enable-api   --cors "*"   --model models/latest.tar.gz   --endpoints endpoints.yml   --credentials credentials.yml   --log-file rasa.log   --port 5005 --debug
+
+
+streamlit run log_viewer.py
