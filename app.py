@@ -171,7 +171,7 @@ class ChatBot:
             "duration": duration
         }
 
-
+# 直接和rasa前端交互
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest):
     """Chat endpoint with caching functionality"""
