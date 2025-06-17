@@ -45,23 +45,43 @@
 3. 增加对网点号码的识别，直接认为用户的区域就是网点号码的区域
 4. 增加10个业务主项识别的智能体，测试智能体的并发量
 
-"neo4j-aura": {
-      "timeout": 60,
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "mcp-neo4j-cypher@0.2.1"
-      ],
-      "env": {
-        "NEO4J_URI": "bolt://localhost:7687",
-        "NEO4J_USERNAME": "neo4j",
-        "NEO4J_PASSWORD": "password",
-        "NEO4J_DATABASE": "neo4j"
+```json
+{"mcpServers": {
+  "neo4j-aura": {
+        "transport": "stdio",
+        "command": "uvx",
+        "args": [
+          "mcp-neo4j-cypher@0.2.1"
+        ],
+        "env": {
+          "NEO4J_URI": "bolt://localhost:7687",
+          "NEO4J_USERNAME": "neo4j",
+          "NEO4J_PASSWORD": "password",
+          "NEO4J_DATABASE": "neo4j"
+        }
       }
-    }
+  }
+}
+```
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USERNAME="neo4j"
 export NEO4J_PASSWORD="password"
 export NEO4J_DATABASE="neo4j"
 export UV_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
 uvx "mcp-neo4j-cypher@0.2.1"
+
+
+### 2025-06-16 
+
+1. 修复无法识别意图的问题
+2. 测试环境发布地址，电话查询，还未上线
+3. 完成多意图识别
+4. 增加QA问答对智能体
+5. 公共资源部智能客服开始接触，并实现智能体
+
+#### 后续：
+
+1. 确定里程碑
+2. 加大测试力度
+3. 人力投入（爬虫）
+4. 后续技术方向

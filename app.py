@@ -304,6 +304,80 @@ async def chat_with_agent(request: ChatRequest):
             from_cache=False,
             message=str(e.detail))
 
+
+@app.post("/quick", response_model=ChatResponse)
+async def chat_with_quick(request: ChatRequest):
+    """Chat endpoint with caching functionality"""
+
+    redis_conn = await get_redis_connection()
+    sender, message = extract_user_message(request.question)
+
+    if sender is None or message is None:
+        return ChatResponse(
+            success=False,
+            answer="",
+            duration="0.00",
+            from_cache=False,
+            message="Invalid message format"
+        )
+
+    # Generate cache key based on sender and message
+    cache_key = generate_cache_key(sender, message)
+
+    # Try to get from cache
+    cached_result = await redis_conn.get(cache_key)
+    if cached_result is not None:
+        cached_data = json.loads(cached_result)
+        return ChatResponse(
+            success=True,
+            answer=cached_data["answer"],
+            duration=cached_data["duration"],
+            from_cache=True,
+            message="Result retrieved from cache"
+        )
+
+    # If not in cache, call Rasa API using the global ChatBot instance
+    try:
+        api_key = "d18cinpdi5hji2gj1o70"
+
+        # 使用异步上下文管理器
+        area = ""
+        async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
+            # 第一次聊天
+            if "&" in sender:
+                _area = sender.split("&")[-1]
+                area = service_centers.get(_area, "")
+            data = f"用户问题：“{message}”  用户地址：“{area}”"
+            result = await chat_bot.chat(data)
+        # result = await chat_bot.chat(sender, message)
+        logger.debug(f"return data is {result}")
+        # 去掉 -
+        _answer = result["answer"]
+        if "0431-" in _answer:
+            _answer = _answer.replace("0431-", "0431 ")
+        # Store result in Redis
+        cache_data = {
+            "answer": _answer,
+            "duration": result["duration"]
+        }
+        await redis_conn.setex(cache_key, REDIS_EXPIRE, json.dumps(cache_data))
+
+        return ChatResponse(
+            success=True,
+            answer=_answer,
+            duration=result["duration"],
+            from_cache=False,
+            message="Result retrieved from Rasa API and cached"
+        )
+    except HTTPException as e:
+        return ChatResponse(
+            success=False,
+            answer="",
+            duration="0.00",
+            from_cache=False,
+            message=str(e.detail))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5678,
