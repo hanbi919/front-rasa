@@ -2,7 +2,7 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
-from tools.district_agent import district_chatbot
+from tools.district_agent import District_ChatBot
 from tools.call_rasa import rasa_client
 from tools.const import SELECTION
 from tools.decorators import log_execution_time
@@ -61,7 +61,7 @@ class ActionLocation(Action):
 
     def _query_district_chatbot(self, user_input: str) -> Dict[Text, Any]:
         """查询地区聊天机器人并返回响应"""
-        response = district_chatbot.chat(user_input)
+        response = District_ChatBot().chat(user_input)
         logger.debug(f"District chatbot response: {response}")
         return response
 

@@ -2,7 +2,7 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet, ActiveLoop
-from tools.follow_up_agent import follow_up_chatbot
+from tools.follow_up_agent import Follow_up_ChatBot
 from tools.call_rasa import rasa_client
 from tools.const import SELECTION
 from .sys_logger import logger
@@ -48,7 +48,7 @@ class ActionFollowUp(Action):
             })
 
             # 与追问聊天机器人交互
-            data = follow_up_chatbot.chat(format_str)
+            data = Follow_up_ChatBot().chat(format_str)
             logger.info("收到追问机器人响应", extra={
                 "response": data,
                 "duration": data.get('duration', 'N/A')

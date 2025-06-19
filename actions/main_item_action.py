@@ -6,13 +6,14 @@ from rasa_sdk.events import SlotSet, ActiveLoop
 # from tools.async_main_agent import AsyncMainItemChatBot
 # from tools.main_agent import main_item_chatbot
 # from tools.main_item_deepseek import DifyAgentStreamClient
-from tools.main_agent import main_item_chatbot
+
 # from tools.main_agent_pool import get_global_pool
 from tools.call_rasa import rasa_client
 from tools.const import SELECTION
 from tools.decorators import log_execution_time
 from .sys_logger import logger
-from tools.detail_agent import detail_chatbot
+from tools.detail_agent import Detail_ChatBot
+from tools.main_agent import Main_Item_ChatBot
 import re
 import asyncio
 import threading
@@ -34,7 +35,7 @@ class ActionMainItem(Action):
         """后台处理的函数"""
         try:
             logger.info(f"后台线程开始处理数据: {data}")
-            result = detail_chatbot.chat(data)
+            result = Detail_ChatBot().chat(data)
             logger.debug("获取chatbot响应", extra={
                 "response": result,
                 "duration": result.get('duration', 'N/A')
@@ -74,7 +75,7 @@ class ActionMainItem(Action):
         #     chatbot_response = await chat_bot.chat(user_input)
         # chatbot_response = await asyncio.to_thread(main_item_chatbot.chat, user_input)
         # with pool.get_instance() as bot:
-        chatbot_response = main_item_chatbot.chat(user_input)
+        chatbot_response = Main_Item_ChatBot().chat(user_input)
         logger.debug(f"chatbot response is: {chatbot_response}")
         # 启动后台，处理多意图
 
@@ -129,7 +130,7 @@ class ActionMainItem(Action):
 
         try:
             user_input = tracker.latest_message.get("text")
-            result = detail_chatbot.chat(user_input)
+            result = Detail_ChatBot().chat(user_input)
             # logger.info(await self.handle_user_request(user_input, tracker.sender_id))
             # 为多意图
             if result['answer'] != user_input:

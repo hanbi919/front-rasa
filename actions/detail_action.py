@@ -3,7 +3,7 @@ from tools.decorators import log_execution_time
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from tools.detail_agent import detail_chatbot
+from tools.detail_agent import Detail_ChatBot
 from tools.call_rasa import rasa_client
 from .sys_logger import logger
 from rasa_sdk.events import SlotSet
@@ -29,7 +29,7 @@ class ActionDetail(Action):
             "entities": tracker.latest_message.get("entities", [])
         })
 
-        result = detail_chatbot.chat(input)
+        result = Detail_ChatBot().chat(input)
         # data = self.parse_response(result)
         logger.debug("获取chatbot响应", extra={
             "response": result,
