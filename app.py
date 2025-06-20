@@ -1,3 +1,4 @@
+from fastapi.responses import StreamingResponse
 import re
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -172,6 +173,8 @@ class ChatBot:
         }
 
 # 直接和rasa前端交互
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest):
     """Chat endpoint with caching functionality"""
@@ -377,6 +380,16 @@ async def chat_with_quick(request: ChatRequest):
             from_cache=False,
             message=str(e.detail))
 
+
+def generate_sse_data():
+    for i in range(5):
+        time.sleep(1)
+        yield f"data: Message {i}\n\n"
+
+
+@app.get("/sse")
+async def sse_stream():
+    return StreamingResponse(generate_sse_data(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn
