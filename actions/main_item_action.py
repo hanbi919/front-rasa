@@ -134,7 +134,10 @@ class ActionMainItem(Action):
             # logger.info(await self.handle_user_request(user_input, tracker.sender_id))
             # 为多意图
             if result['answer'] != user_input:
-                msg = f"/ask_service_details{{\"detail_type\": \"{result['answer']}\",\"main_item\": \"{message}\"}}"
+                if result['answer']=="办理材料":
+                    msg = f"/ask_disability_service{{\"main_item\": \"{message}\"}}"
+                else:
+                    msg = f"/ask_service_details{{\"detail_type\": \"{result['answer']}\",\"main_item\": \"{message}\"}}"
                 logger.debug(f"send message is {msg}")
                 resp = await rasa_client.send_message_async(sender_id=conversation_id, message=msg)
             else:
