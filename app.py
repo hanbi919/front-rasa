@@ -341,8 +341,8 @@ async def chat_with_quick(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d18cinpdi5hji2gj1o70"
-
+        api_key = "d1j3m3hdi5hts8undi2g"
+# d18cinpdi5hji2gj1o70
         # 使用异步上下文管理器
         area = ""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
