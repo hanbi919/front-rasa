@@ -357,7 +357,7 @@ async def chat_with_quick(request: ChatRequest):
         # 去掉 -
         _answer = result["answer"]
         if "0431-" in _answer:
-            _answer = _answer.replace("0431-", "0431 ")
+            _answer = _answer.replace("0431-", "0431,")
         # Store result in Redis
         cache_data = {
             "answer": _answer,
