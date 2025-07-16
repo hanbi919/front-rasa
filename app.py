@@ -19,7 +19,7 @@ REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
 REDIS_PASSWORD = None
-REDIS_EXPIRE = 20  # Cache expiration time in seconds
+REDIS_EXPIRE = 10  # Cache expiration time in seconds
 
 # Global variables to hold shared resources
 redis_pool = None
