@@ -48,7 +48,8 @@ nlu:
     - 危货车年检的办理需要什么材料
     - 我想办企业出租车运营执照需要什么
     - 我要补办税务相关证件去哪办理
-    # - 我要办理[税务相关证件](business)​怎么办
+    - 取消多机构职业注册
+    - 企业注销
 
 - intent: ask_material
   examples: |
@@ -256,11 +257,11 @@ nlu:
     - 朝阳政务中心
 
     
-- intent: restart
-  examples: |
-    - /restart
-    - 重新开始
-    - 重置会话
+# - intent: restart
+#   examples: |
+#     - /restart
+#     - 重新开始
+#     - 重置会话
 
 - intent: provide_location+inform_main_item
   examples: |
