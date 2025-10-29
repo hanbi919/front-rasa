@@ -529,9 +529,10 @@ async def chat_with_onething(request: ChatRequest):
             duration="0.00",
             from_cache=False,
             message=str(e.detail))
+
 # 商务局使用
 @app.post("/busz", response_model=ChatResponse)
-async def chat_with_public(request: ChatRequest):
+async def chat_with_busz(request: ChatRequest):
     """Chat endpoint with caching functionality"""
 
     redis_conn = await get_redis_connection()
@@ -602,10 +603,11 @@ async def chat_with_public(request: ChatRequest):
             duration="0.00",
             from_cache=False,
             message=str(e.detail))
+# 用于车管所的接口
 
-# 商务局使用
-@app.post("/busz", response_model=ChatResponse)
-async def chat_with_public(request: ChatRequest):
+
+@app.post("/car", response_model=ChatResponse)
+async def chat_with_car(request: ChatRequest):
     """Chat endpoint with caching functionality"""
 
     redis_conn = await get_redis_connection()
@@ -637,9 +639,7 @@ async def chat_with_public(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d30i74j9oe2hd5c9jq7g"
-        # api_key = "d1nmhu39oe2hubi97cog"
-        # d18cinpdi5hji2gj1o70
+        api_key = "d3rdq039oe2n60nrpms0"
         # 使用异步上下文管理器
         area = ""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
@@ -676,7 +676,6 @@ async def chat_with_public(request: ChatRequest):
             duration="0.00",
             from_cache=False,
             message=str(e.detail))
-
 def generate_sse_data():
     for i in range(5):
         time.sleep(1)
