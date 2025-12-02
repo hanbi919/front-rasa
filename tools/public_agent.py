@@ -7,7 +7,9 @@ class Public_ChatBot(ChatBot):
     def __init__(self):
         # 第一个工具的配置参数
         super().__init__(
-            api_key="d1nmhu39oe2hubi97cog",
+            api_key="d4n44jc674etvv1aerr0",
+            # api_key="d1nmhu39oe2hubi97cog",
+            
             # api_key="d09fdaf292p9imkl67c0",
         )
 

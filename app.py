@@ -171,10 +171,7 @@ class ChatBot:
             "answer": result,
             "duration": duration
         }
-
 # 直接和rasa前端交互
-
-
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest):
     """Chat endpoint with caching functionality"""
@@ -233,8 +230,6 @@ async def chat_with_bot(request: ChatRequest):
             message=str(e.detail))
 
 # 查询各个大厅的地址，电话，上班时间等
-
-
 @app.post("/agent", response_model=ChatResponse)
 async def chat_with_agent(request: ChatRequest):
     """Chat endpoint with caching functionality"""
@@ -268,8 +263,9 @@ async def chat_with_agent(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d13qbg2f9ns5f38uuac0"
-
+        # api_key = "d13qbg2f9ns5f38uuac0"
+        api_key = "d4i1iq4674etvv1ad9v0"
+        
         # 使用异步上下文管理器
         area = ""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
@@ -341,7 +337,8 @@ async def chat_with_quick(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d1j3m3hdi5hts8undi2g"
+        api_key = "d4i1iq4674etvv1ad9v0"
+        # api_key = "d1j3m3hdi5hts8undi2g"
 # d18cinpdi5hji2gj1o70
         # 使用异步上下文管理器
         area = ""
@@ -416,7 +413,8 @@ async def chat_with_public(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d2a3m3r9oe2j5uti7j70"
+        api_key = "d4i1bhsusg34fug8bl40"
+        # api_key = "d2a3m3r9oe2j5uti7j70"
         # api_key = "d1nmhu39oe2hubi97cog"
         # d18cinpdi5hji2gj1o70
         # 使用异步上下文管理器
@@ -492,7 +490,8 @@ async def chat_with_onething(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d280jnj9oe2j5uti2ko0"
+        api_key = "d4i1g3s674etvv1ad9ig"
+        # api_key = "d280jnj9oe2j5uti2ko0"
         # 使用异步上下文管理器
         area = ""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
@@ -564,7 +563,8 @@ async def chat_with_busz(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d30i74j9oe2hd5c9jq7g"
+        api_key = "d4i19o4674etvv1ad92g"
+        # api_key = "d30i74j9oe2hd5c9jq7g"
         # api_key = "d1nmhu39oe2hubi97cog"
         # d18cinpdi5hji2gj1o70
         # 使用异步上下文管理器
@@ -639,7 +639,8 @@ async def chat_with_car(request: ChatRequest):
 
     # If not in cache, call Rasa API using the global ChatBot instance
     try:
-        api_key = "d3rdq039oe2n60nrpms0"
+        api_key = "d4i16fkusg34fug8bkr0"
+        # api_key = "d3rdq039oe2n60nrpms0"
         # 使用异步上下文管理器
         area = ""
         async with AsyncChatBot(api_key, sender, redis_conn) as chat_bot:
