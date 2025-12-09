@@ -25,8 +25,8 @@ class AsyncChatBot:
         self.user_id = "admin"
         self.api_key = api_key
         self.host = "116.141.0.87"
-        self.port = "32300"
-        # self.port = "80"
+        # self.port = "32300"
+        self.port = "80"
         self.session = None  # aiohttp 会话
         self.redis_client = redis_conn  # redis 客户端
         self.conversation_id = None  # 会在初始化时设置
