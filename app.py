@@ -14,6 +14,7 @@ import asyncio
 from tools.async_higent import AsyncChatBot
 from tools.const import service_centers
 from sys_logger import logger
+from routes import router
 # Redis configuration
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
@@ -67,7 +68,8 @@ app.add_middleware(
 
 # Request models
 
-
+# 注册路由
+app.include_router(router, prefix="/api")
 class ChatRequest(BaseModel):
     question: str
 
