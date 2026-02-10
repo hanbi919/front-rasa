@@ -10,7 +10,7 @@ data = {
 
 # 发送POST请求
 response = requests.post(
-    'http://localhost:8000/api/sendSmsV1',
+    'http://116.141.0.77:5678/api/sendSmsV1',
     data=data,
     headers={'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'}
 )
@@ -27,7 +27,7 @@ xml_data = "<SmsList><row phone='15643117897' info='测试短信内容' spnumber
 
 # 发送POST请求
 response = requests.post(
-    'http://localhost:8000/api/sendSmsV2',
+    'http://116.141.0.77:5678/api/sendSmsV2',
     data={'xml_data': xml_data},
     headers={'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'}
 )
