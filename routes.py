@@ -8,7 +8,7 @@ from apscheduler.triggers.cron import CronTrigger
 from fastapi import APIRouter, Request, Body, Depends
 
 from auth import verify_token
-from log import setup_logger
+from sys_logger import setup_logger
 from model import ApiResponse, SendSmsV1Request, SmsItem
 from util import md5_encrypt_16_lower, getConfig, escape_xml
 
